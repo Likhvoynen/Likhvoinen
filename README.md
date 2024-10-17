@@ -64,12 +64,17 @@ Sub CreateFormattedPivotTable()
         .PivotFields("Номер недели").Orientation = xlColumnField
         On Error GoTo 0
 
-        ' Перемещаем поле "Категория просрочки" после "Заказчика"
-        .PivotFields("Категория просрочки").Position = 4 ' Перемещение после "Заказчика"
-
         ' Устанавливаем стиль сводной таблицы: "Средний 8"
         .TableStyle2 = "PivotStyleMedium8"
     End With
+
+    ' Перемещаем поле "Категория просрочки" после "Заказчика"
+    On Error Resume Next
+    With PivotTable
+        .PivotFields("Категория просрочки").Orientation = xlRowField ' Сначала добавляем его в строку
+        .PivotFields("Категория просрочки").Position = 4 ' Перемещение после "Заказчика"
+    End With
+    On Error GoTo 0
 
     ' Преобразуем значения в столбце "Сальдо СФ на конец периода" в числовой формат
     Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")

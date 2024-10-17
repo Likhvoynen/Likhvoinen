@@ -5,6 +5,7 @@ Sub CreateFormattedPivotTable()
     Dim PivotCache As PivotCache
     Dim LastRow As Long, LastCol As Long
     Dim SourceRange As String
+    Dim pf As PivotField
 
     ' Отключаем обновление экрана для ускорения выполнения
     Application.ScreenUpdating = False
@@ -47,13 +48,10 @@ Sub CreateFormattedPivotTable()
         ' Устанавливаем табличную форму
         .RowAxisLayout xlTabularRow
 
-        ' Отключаем промежуточные итоги для полей "Сегмент" и "Ответственный"
+        ' Отключаем промежуточные итоги только для поля "Ответственный"
         On Error Resume Next
-        With .PivotFields("Сегмент")
-            .Subtotals(1) = False ' Отключение всех промежуточных итогов
-        End With
         With .PivotFields("Ответственный")
-            .Subtotals(1) = False
+            .Subtotals(1) = False ' Отключение всех промежуточных итогов
         End With
 
         ' Добавляем поля (замени на нужные)
@@ -69,8 +67,15 @@ Sub CreateFormattedPivotTable()
         .TableStyle2 = "PivotStyleMedium8"
     End With
 
+    ' Сворачиваем все поля сводной таблицы
+    For Each pf In PivotTable.PivotFields
+        On Error Resume Next
+        pf.ShowDetail = False ' Сворачиваем
+        On Error GoTo 0
+    Next pf
+
     ' Включаем обновление экрана
     Application.ScreenUpdating = True
 
-    MsgBox "Сводная таблица успешно создана и отформатирована на листе 'Свод'!", vbInformation
+    MsgBox "Сводная таблица успешно создана, отформатирована и свернута на листе 'Свод'!", vbInformation
 End Sub

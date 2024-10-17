@@ -6,6 +6,7 @@ Sub CreateFormattedPivotTable()
     Dim LastRow As Long, LastCol As Long
     Dim SourceRange As String
     Dim pf As PivotField
+    Dim DataField As PivotField
 
     ' Отключаем обновление экрана для ускорения выполнения
     Application.ScreenUpdating = False
@@ -63,8 +64,17 @@ Sub CreateFormattedPivotTable()
         .PivotFields("Номер недели").Orientation = xlColumnField
         On Error GoTo 0
 
+        ' Перемещаем поле "Категория просрочки" после "Заказчика"
+        .PivotFields("Категория просрочки").Position = 4 ' Перемещение после "Заказчика"
+
         ' Устанавливаем стиль сводной таблицы: "Средний 8"
         .TableStyle2 = "PivotStyleMedium8"
+    End With
+
+    ' Преобразуем значения в столбце "Сальдо СФ на конец периода" в числовой формат
+    Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")
+    With DataField
+        .NumberFormat = "#,##0.00" ' Формат с двумя знаками после запятой
     End With
 
     ' Сворачиваем все поля сводной таблицы, кроме строк

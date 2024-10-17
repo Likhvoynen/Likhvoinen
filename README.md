@@ -2,6 +2,7 @@ Sub CreatePivotTableOnNewSheet()
     Dim DataSheet As Worksheet
     Dim PivotSheet As Worksheet
     Dim PivotTable As PivotTable
+    Dim PivotCache As PivotCache
     Dim LastRow As Long, LastCol As Long
     Dim SourceRange As String
 
@@ -15,7 +16,7 @@ Sub CreatePivotTableOnNewSheet()
     With DataSheet
         LastRow = .Cells(.Rows.Count, 1).End(xlUp).Row
         LastCol = .Cells(1, .Columns.Count).End(xlToLeft).Column
-        SourceRange = .Name & "!A1:" & .Cells(LastRow, LastCol).Address
+        SourceRange = "'" & .Name & "'!A1:" & .Cells(LastRow, LastCol).Address(False, False)
     End With
 
     ' Проверяем и удаляем лист "Свод", если он уже существует
@@ -28,12 +29,15 @@ Sub CreatePivotTableOnNewSheet()
     Set PivotSheet = ActiveWorkbook.Sheets.Add
     PivotSheet.Name = "Свод"
 
-    ' Создаём сводную таблицу на новом листе "Свод"
-    Set PivotTable = ActiveWorkbook.PivotCaches.Create( _
+    ' Создаём PivotCache на основе данных
+    Set PivotCache = ActiveWorkbook.PivotCaches.Create( _
         SourceType:=xlDatabase, _
-        SourceData:=SourceRange).CreatePivotTable( _
+        SourceData:=SourceRange)
+
+    ' Создаём сводную таблицу на новом листе "Свод"
+    Set PivotTable = PivotCache.CreatePivotTable( _
         TableDestination:=PivotSheet.Cells(3, 1), _
-        TableName:="Сводная таблица")
+        TableName:="СводнаяТаблица")
 
     ' Настраиваем сводную таблицу
     With PivotTable

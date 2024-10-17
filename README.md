@@ -67,10 +67,13 @@ Sub CreateFormattedPivotTable()
         .TableStyle2 = "PivotStyleMedium8"
     End With
 
-    ' Сворачиваем все поля сводной таблицы
+    ' Сворачиваем все поля сводной таблицы, кроме строк
     For Each pf In PivotTable.PivotFields
         On Error Resume Next
-        pf.ShowDetail = False ' Сворачиваем
+        ' Проверяем, является ли поле строковым
+        If pf.Orientation <> xlRowField Then
+            pf.ShowDetail = False ' Сворачиваем, если не строка
+        End If
         On Error GoTo 0
     Next pf
 

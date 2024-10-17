@@ -1,4 +1,4 @@
-Sub CreatePivotTableOnNewSheet()
+Sub CreateFormattedPivotTable()
     Dim DataSheet As Worksheet
     Dim PivotSheet As Worksheet
     Dim PivotTable As PivotTable
@@ -42,9 +42,21 @@ Sub CreatePivotTableOnNewSheet()
     ' Настраиваем сводную таблицу
     With PivotTable
         .SmallGrid = True
+        .ShowTableStyleRowStripes = True ' Полосатые строки
 
-        ' Добавляем необходимые поля (замени на нужные тебе)
+        ' Устанавливаем табличную форму
+        .RowAxisLayout xlTabularRow
+
+        ' Отключаем промежуточные итоги для полей "Сегмент" и "Ответственный"
         On Error Resume Next
+        With .PivotFields("Сегмент")
+            .Subtotals(1) = False ' Отключение всех промежуточных итогов
+        End With
+        With .PivotFields("Ответственный")
+            .Subtotals(1) = False
+        End With
+
+        ' Добавляем поля (замени на нужные)
         .PivotFields("Сальдо СФ на конец периода").Orientation = xlDataField
         .PivotFields("Сегмент").Orientation = xlRowField
         .PivotFields("Ответственный").Orientation = xlRowField
@@ -52,10 +64,13 @@ Sub CreatePivotTableOnNewSheet()
         .PivotFields("Категория просрочки").Orientation = xlColumnField
         .PivotFields("Номер недели").Orientation = xlColumnField
         On Error GoTo 0
+
+        ' Устанавливаем стиль сводной таблицы: "Средний 8"
+        .TableStyle2 = "PivotStyleMedium8"
     End With
 
     ' Включаем обновление экрана
     Application.ScreenUpdating = True
 
-    MsgBox "Сводная таблица успешно создана на листе 'Свод'!", vbInformation
+    MsgBox "Сводная таблица успешно создана и отформатирована на листе 'Свод'!", vbInformation
 End Sub

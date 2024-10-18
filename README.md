@@ -53,16 +53,15 @@ Sub CreateFormattedPivotTable()
             .Subtotals(1) = False ' Отключение всех промежуточных итогов
         End With
 
-        ' Добавляем поля
-        .PivotFields("Сальдо СФ на конец периода").Orientation = xlDataField
+        ' Добавляем поля в строки
         .PivotFields("Сегмент").Orientation = xlRowField
         .PivotFields("Ответственный").Orientation = xlRowField
         .PivotFields("Заказчик").Orientation = xlRowField
-        
-        ' Добавляем "Категория просрочки" после "Заказчика"
+
+        ' Добавляем поля в столбцы
         With .PivotFields("Категория просрочки")
-            .Orientation = xlRowField
-            .Position = 4 ' После "Заказчика"
+            .Orientation = xlColumnField
+            .Position = 1 ' Первым столбцом
             ' Устанавливаем порядок элементов
             .PivotItems("просрочка более 60 дней").Position = 1
             .PivotItems("просрочка от 30 до 60 дней").Position = 2
@@ -70,8 +69,12 @@ Sub CreateFormattedPivotTable()
             .PivotItems("просрочка до 15 дней").Position = 4
         End With
 
-        ' Добавляем "Номер недели" как колонку
+        ' Добавляем "Номер недели" как второй столбец
         .PivotFields("Номер недели").Orientation = xlColumnField
+        .PivotFields("Номер недели").Position = 2
+
+        ' Добавляем числовое поле
+        .PivotFields("Сальдо СФ на конец периода").Orientation = xlDataField
         On Error GoTo 0
 
         ' Устанавливаем стиль сводной таблицы: "Средний 8"

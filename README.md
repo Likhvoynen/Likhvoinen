@@ -45,9 +45,7 @@ Sub CreateFormattedPivotTable()
     With PivotTable
         .SmallGrid = True
         .ShowTableStyleRowStripes = True ' Полосатые строки
-
-        ' Устанавливаем табличную форму
-        .RowAxisLayout xlTabularRow
+        .RowAxisLayout xlTabularRow ' Устанавливаем табличную форму
 
         ' Отключаем промежуточные итоги только для поля "Ответственный"
         On Error Resume Next
@@ -55,26 +53,30 @@ Sub CreateFormattedPivotTable()
             .Subtotals(1) = False ' Отключение всех промежуточных итогов
         End With
 
-        ' Добавляем поля (замени на нужные)
+        ' Добавляем поля
         .PivotFields("Сальдо СФ на конец периода").Orientation = xlDataField
         .PivotFields("Сегмент").Orientation = xlRowField
         .PivotFields("Ответственный").Orientation = xlRowField
         .PivotFields("Заказчик").Orientation = xlRowField
-        .PivotFields("Категория просрочки").Orientation = xlColumnField
+        
+        ' Добавляем "Категория просрочки" после "Заказчика"
+        With .PivotFields("Категория просрочки")
+            .Orientation = xlRowField
+            .Position = 4 ' После "Заказчика"
+            ' Устанавливаем порядок элементов
+            .PivotItems("просрочка более 60 дней").Position = 1
+            .PivotItems("просрочка от 30 до 60 дней").Position = 2
+            .PivotItems("просрочка от 15 до 30 дней").Position = 3
+            .PivotItems("просрочка до 15 дней").Position = 4
+        End With
+
+        ' Добавляем "Номер недели" как колонку
         .PivotFields("Номер недели").Orientation = xlColumnField
         On Error GoTo 0
 
         ' Устанавливаем стиль сводной таблицы: "Средний 8"
         .TableStyle2 = "PivotStyleMedium8"
     End With
-
-    ' Перемещаем поле "Категория просрочки" после "Заказчика"
-    On Error Resume Next
-    With PivotTable
-        .PivotFields("Категория просрочки").Orientation = xlRowField ' Сначала добавляем его в строку
-        .PivotFields("Категория просрочки").Position = 4 ' Перемещение после "Заказчика"
-    End With
-    On Error GoTo 0
 
     ' Преобразуем значения в столбце "Сальдо СФ на конец периода" в числовой формат
     Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")
@@ -85,7 +87,6 @@ Sub CreateFormattedPivotTable()
     ' Сворачиваем все поля сводной таблицы, кроме строк
     For Each pf In PivotTable.PivotFields
         On Error Resume Next
-        ' Проверяем, является ли поле строковым
         If pf.Orientation <> xlRowField Then
             pf.ShowDetail = False ' Сворачиваем, если не строка
         End If

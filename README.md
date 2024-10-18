@@ -210,11 +210,11 @@ Sub свод_1137()
         .TableStyle2 = "PivotStyleMedium8"
     End With
 
-    ' Преобразуем значения в столбце "Сальдо СФ на конец периода" в числовой формат
-    Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")
-    With DataField
-        .numberFormat = "#,##0.00" ' Формат с двумя знаками после запятой
-    End With
+' Преобразуем значения в столбце "Сальдо СФ на конец периода" в финансовый формат
+Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")
+With DataField
+    .NumberFormat = "_-* #,##0.00_₽_-;_-*
+end with
 
     ' Сворачиваем все поля сводной таблицы, кроме строк
     For Each pf In PivotTable.PivotFields

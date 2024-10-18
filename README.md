@@ -1,229 +1,138 @@
 Option Explicit
 
-Sub new_1137()
-
+Sub CreateReportAndPivotTable()
     Application.ScreenUpdating = False
     Application.Calculation = xlCalculationManual
-    
-    Columns("R:R").Select
-    Selection.Insert Shift:=xlToRight
-    Range("R1").Select
-    ActiveCell.FormulaR1C1 = "Дни просрочки с учетом доставки на дату отчета"
-    
-    With Selection.Interior
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-        .ThemeColor = xlThemeColorAccent1
-        .TintAndShade = 0.399975585192419
-        .PatternTintAndShade = 0
-    End With
-    
-    Range("R2").Select
-    
-    Dim checkup As Boolean
-    Dim i As Integer
-    i = 0
-    
-    Dim A As String
-    Dim B As String
-    
-    A = Sheets("Параметры").Range("B2")
-    B = "=Параметры!R5C2-'ДЗ " + A + "'!RC[-9]"
-    
-    Do While checkup = False
-        checkup = IsEmpty(ActiveCell.Offset(1, -1))
-        ActiveCell.FormulaR1C1 = B
-        Selection.NumberFormat = "0"
-        i = i + 1
-        ActiveCell.Offset(1, 0).Activate
-    Loop
-    
-    Columns("S:S").Select
-    Selection.Insert Shift:=xlToRight
-    Range("S1").Select
-    ActiveCell.FormulaR1C1 = "Категория просрочки"
-   
-    With Selection.Interior
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-        .ThemeColor = xlThemeColorAccent1
-        .TintAndShade = 0.399975585192419
-    .PatternTintAndShade = 0
-    End With
-    
-    Range("S2").Select
-    
-    checkup = False
-    i = 0
- 
-    Do While checkup = False
-      checkup = IsEmpty(ActiveCell.Offset(1, -1))
-        ActiveCell.FormulaR1C1 = "=IF(RC[-1]<1,CONCATENATE(YEAR(RC[-10]),""-"",MONTH(RC[-10])),IF(RC[-1]<15,""просрочка до 15 дней"",IF(RC[-1]<30,""просрочка от 15 до 30 дней"",IF(RC[-1]<60,""просрочка от 30 до 60 дней"",""просрочка более 60 дней""))))"
-        i = i + 1
-        ActiveCell.Offset(1, 0).Activate
-    Loop
-    
-    Columns("T:T").Select
-    Selection.Insert Shift:=xlToRight
-    Range("T1").Select
-    ActiveCell.FormulaR1C1 = "Номер"
-    
-    With Selection.Interior
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-        .ThemeColor = xlThemeColorAccent1
-        .TintAndShade = 0.399975585192419
-        .PatternTintAndShade = 0
-    End With
-    
-    Range("T2").Select
-    
-    checkup = False
-    i = 0
- 
-    Do While checkup = False
-        checkup = IsEmpty(ActiveCell.Offset(1, -1))
-        ActiveCell.FormulaR1C1 = "=WEEKNUM(RC[-11],21)"
-        i = i + 1
-        ActiveCell.Offset(1, 0).Activate
-    Loop
-    
-    Columns("U:U").Select
-    Selection.Insert Shift:=xlToRight
-    Range("U1").Select
-    ActiveCell.FormulaR1C1 = "Номер недели"
-    
-    With Selection.Interior
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-        .ThemeColor = xlThemeColorAccent1
-        .TintAndShade = 0.399975585192419
-        .PatternTintAndShade = 0
-    End With
-    
-    Range("U2").Select
 
-    checkup = False
-    i = 0
-  
-    Do While checkup = False
-        checkup = IsEmpty(ActiveCell.Offset(1, -1))
-        ActiveCell.FormulaR1C1 = "=CONCATENATE(RC[-1],"" неделя"")"
-        i = i + 1
-        ActiveCell.Offset(1, 0).Activate
-    Loop
+    ' Добавление и заполнение столбца "Дни просрочки с учетом доставки на дату отчета"
+    Columns("R:R").Insert Shift:=xlToRight
+    Range("R1").Value = "Дни просрочки с учетом доставки на дату отчета"
+    ApplyHeaderStyle Range("R1")
     
-    Range("I1").Select
-    With Selection.Interior
-        .Pattern = xlSolid
-        .PatternColorIndex = xlAutomatic
-        .ThemeColor = xlThemeColorAccent1
-        .TintAndShade = 0.399975585192419
-        .PatternTintAndShade = 0
-    End With
+    FillColumnWithFormula Range("R2"), _
+        "=Параметры!R5C2-'ДЗ " & Sheets("Параметры").Range("B2").Value & "'!RC[-9]"
     
-    Application.ScreenUpdating = True
+    ' Добавление и заполнение столбца "Категория просрочки"
+    Columns("S:S").Insert Shift:=xlToRight
+    Range("S1").Value = "Категория просрочки"
+    ApplyHeaderStyle Range("S1")
+    
+    FillColumnWithFormula Range("S2"), _
+        "=IF(RC[-1]<1, CONCATENATE(YEAR(RC[-10]), ""-"", MONTH(RC[-10])), " & _
+        "IF(RC[-1]<15, ""просрочка до 15 дней"", IF(RC[-1]<30, ""просрочка от 15 до 30 дней"", " & _
+        "IF(RC[-1]<60, ""просрочка от 30 до 60 дней"", ""просрочка более 60 дней""))))"
+
+    ' Добавление и заполнение столбца "Номер"
+    Columns("T:T").Insert Shift:=xlToRight
+    Range("T1").Value = "Номер"
+    ApplyHeaderStyle Range("T1")
+
+    FillColumnWithFormula Range("T2"), "=WEEKNUM(RC[-11], 21)"
+
+    ' Добавление и заполнение столбца "Номер недели"
+    Columns("U:U").Insert Shift:=xlToRight
+    Range("U1").Value = "Номер недели"
+    ApplyHeaderStyle Range("U1")
+
+    FillColumnWithFormula Range("U2"), "=CONCATENATE(RC[-1], "" неделя"")"
+
+    ' Создание и настройка сводной таблицы
+    CreateFormattedPivotTable
+
     Application.Calculation = xlCalculationAutomatic
+    Application.ScreenUpdating = True
 
-Sub CreateFormattedPivotTable()
-    Dim DataSheet As Worksheet
-    Dim PivotSheet As Worksheet
-    Dim PivotTable As PivotTable
-    Dim PivotCache As PivotCache
-    Dim LastRow As Long, LastCol As Long
-    Dim SourceRange As String
-    Dim pf As PivotField
-    Dim DataField As PivotField
+    MsgBox "Отчёт и сводная таблица успешно созданы!", vbInformation
+End Sub
 
-    ' Отключаем обновление экрана для ускорения выполнения
-    Application.ScreenUpdating = False
+' Заполняет колонку формулой до первой пустой ячейки в соседней колонке
+Private Sub FillColumnWithFormula(startCell As Range, formula As String)
+    Dim checkup As Boolean: checkup = False
+    Dim i As Integer: i = 0
 
-    ' Определяем активный лист с данными
+    Do While Not checkup
+        checkup = IsEmpty(startCell.Offset(i, -1))
+        startCell.Offset(i, 0).FormulaR1C1 = formula
+        i = i + 1
+    Loop
+End Sub
+
+' Применяет стиль заголовка к ячейке
+Private Sub ApplyHeaderStyle(cell As Range)
+    With cell.Interior
+        .Pattern = xlSolid
+        .PatternColorIndex = xlAutomatic
+        .ThemeColor = xlThemeColorAccent1
+        .TintAndShade = 0.4
+    End With
+End Sub
+
+' Создание сводной таблицы
+Private Sub CreateFormattedPivotTable()
+    Dim DataSheet As Worksheet, PivotSheet As Worksheet
+    Dim PivotTable As PivotTable, PivotCache As PivotCache
+    Dim LastRow As Long, LastCol As Long, SourceRange As String
+
     Set DataSheet = ActiveSheet
 
-    ' Определяем последний заполненный ряд и столбец на активном листе
+    ' Определение диапазона данных
     With DataSheet
         LastRow = .Cells(.Rows.Count, 1).End(xlUp).Row
         LastCol = .Cells(1, .Columns.Count).End(xlToLeft).Column
         SourceRange = "'" & .Name & "'!A1:" & .Cells(LastRow, LastCol).Address(False, False)
     End With
 
-    ' Проверяем и удаляем лист "Свод", если он уже существует
+    ' Создание листа "Свод"
     On Error Resume Next
     Set PivotSheet = ActiveWorkbook.Sheets("Свод")
     If Not PivotSheet Is Nothing Then PivotSheet.Delete
     On Error GoTo 0
 
-    ' Создаём новый лист для сводной таблицы
     Set PivotSheet = ActiveWorkbook.Sheets.Add
     PivotSheet.Name = "Свод"
 
-    ' Создаём PivotCache на основе данных
+    ' Создание сводной таблицы
     Set PivotCache = ActiveWorkbook.PivotCaches.Create( _
-        SourceType:=xlDatabase, _
-        SourceData:=SourceRange)
+        SourceType:=xlDatabase, SourceData:=SourceRange)
 
-    ' Создаём сводную таблицу на новом листе "Свод"
     Set PivotTable = PivotCache.CreatePivotTable( _
-        TableDestination:=PivotSheet.Cells(3, 1), _
-        TableName:="СводнаяТаблица")
+        TableDestination:=PivotSheet.Cells(3, 1), TableName:="СводнаяТаблица")
 
-    ' Настраиваем сводную таблицу
+    ' Настройка сводной таблицы
     With PivotTable
         .SmallGrid = True
-        .RowAxisLayout xlTabularRow ' Устанавливаем табличную форму
+        .RowAxisLayout xlTabularRow
 
-        ' Отключаем промежуточные итоги только для поля "Ответственный"
-        On Error Resume Next
-        With .PivotFields("Ответственный")
-            .Subtotals(1) = False ' Отключение всех промежуточных итогов
-        End With
+        ' Настройка полей
+        AddPivotField .PivotFields("Сегмент"), xlRowField
+        AddPivotField .PivotFields("Ответственный"), xlRowField
+        AddPivotField .PivotFields("Заказчик"), xlRowField
 
-        ' Добавляем поля в строки
-        .PivotFields("Сегмент").Orientation = xlRowField
-        .PivotFields("Ответственный").Orientation = xlRowField
-        .PivotFields("Заказчик").Orientation = xlRowField
-
-        ' Добавляем поля в столбцы
+        ' Поле "Категория просрочки"
         With .PivotFields("Категория просрочки")
             .Orientation = xlColumnField
-            .Position = 1 ' Первым столбцом
-            ' Устанавливаем порядок элементов
+            .Position = 1
             .PivotItems("просрочка более 60 дней").Position = 1
             .PivotItems("просрочка от 30 до 60 дней").Position = 2
             .PivotItems("просрочка от 15 до 30 дней").Position = 3
             .PivotItems("просрочка до 15 дней").Position = 4
         End With
 
-        ' Добавляем "Номер недели" как второй столбец
-        .PivotFields("Номер недели").Orientation = xlColumnField
-        .PivotFields("Номер недели").Position = 2
+        ' Поле "Номер недели"
+        AddPivotField .PivotFields("Номер недели"), xlColumnField, 2
 
-        ' Добавляем числовое поле
+        ' Числовое поле
         .PivotFields("Сальдо СФ на конец периода").Orientation = xlDataField
-        On Error GoTo 0
 
-        ' Устанавливаем стиль сводной таблицы: "Средний 8"
+        ' Применение стиля
         .TableStyle2 = "PivotStyleMedium8"
     End With
+End Sub
 
-    ' Преобразуем значения в столбце "Сальдо СФ на конец периода" в числовой формат
-    Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")
-    With DataField
-        .NumberFormat = "#,##0.00" ' Формат с двумя знаками после запятой
+' Упрощённая функция добавления поля в сводную таблицу
+Private Sub AddPivotField(pf As PivotField, orientation As XlPivotFieldOrientation, Optional position As Integer = 1)
+    With pf
+        .Orientation = orientation
+        .Position = position
     End With
-
-    ' Сворачиваем все поля сводной таблицы, кроме строк
-    For Each pf In PivotTable.PivotFields
-        On Error Resume Next
-        If pf.Orientation <> xlRowField Then
-            pf.ShowDetail = False ' Сворачиваем, если не строка
-        End If
-        On Error GoTo 0
-    Next pf
-
-    ' Включаем обновление экрана
-    Application.ScreenUpdating = True
-
-    MsgBox "Сводная таблица успешно создана, отформатирована и свернута на листе 'Свод'!", vbInformation
 End Sub

@@ -28,6 +28,13 @@ Sub свод_1137()
         SourceRange = "'" & .Name & "'!A1:" & .Cells(LastRow, LastCol).Address(False, False)
     End With
 
+    ' Преобразуем значения в столбце "Сальдо СФ на конец периода" в числовой формат
+    Dim saldoRange As Range
+    Set saldoRange = DataSheet.Range("D2:D" & LastRow) ' Замените "D" на букву столбца, где находится "Сальдо СФ на конец периода"
+    
+    saldoRange.NumberFormat = "General" ' Сначала установите общий формат
+    saldoRange.Value = saldoRange.Value ' Преобразуем текстовые значения в числа
+
     ' Проверяем и удаляем лист "Свод", если он уже существует
     On Error Resume Next
     Set PivotSheet = ActiveWorkbook.Sheets("Свод")

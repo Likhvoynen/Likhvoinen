@@ -7,9 +7,6 @@ Sub CreateFormattedPivotTable()
     Dim SourceRange As String
     Dim pf As PivotField
     Dim DataField As PivotField
-    Dim pi As PivotItem
-    Dim Weeks As Object
-    Dim i As Long
 
     ' Отключаем обновление экрана для ускорения выполнения
     Application.ScreenUpdating = False
@@ -71,31 +68,17 @@ Sub CreateFormattedPivotTable()
             .PivotItems("просрочка до 15 дней").Position = 4
         End With
 
-        ' Добавляем поле "Номер недели" и готовимся к его сортировке
+        ' Добавляем поле "Номер недели"
         With .PivotFields("Номер недели")
             .Orientation = xlColumnField
             .Position = 2
         End With
     End With
 
-    ' Создаём коллекцию для хранения номеров недель в виде дат
-    Set Weeks = CreateObject("Scripting.Dictionary")
-
-    ' Заполняем коллекцию "Weeks" элементами из поля "Номер недели"
-    For Each pi In PivotTable.PivotFields("Номер недели").PivotItems
-        ' Преобразуем номер недели в дату
-        Weeks.Add pi.Name, CDate(Replace(pi.Name, "-", "/") & "-1")
-    Next pi
-
-    ' Сортируем элементы по дате
-    Dim SortedWeeks As Variant
-    SortedWeeks = Weeks.Keys
-    Call QuickSort(SortedWeeks, Weeks)
-
-    ' Перетаскиваем элементы в нужном порядке
-    For i = LBound(SortedWeeks) To UBound(SortedWeeks)
-        PivotTable.PivotFields("Номер недели").PivotItems(SortedWeeks(i)).Position = i + 1
-    Next i
+    ' Сортируем поле "Номер недели" по значениям в строке 4
+    With PivotTable.PivotFields("Номер недели")
+        .AutoSort xlAscending, .SourceName, PivotSheet.Cells(4, 1)
+    End With
 
     ' Преобразуем числовое поле "Сальдо СФ на конец периода"
     Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")
@@ -107,35 +90,4 @@ Sub CreateFormattedPivotTable()
     Application.ScreenUpdating = True
 
     MsgBox "Сводная таблица успешно создана и отсортирована!", vbInformation
-End Sub
-
-' Функция быстрой сортировки (QuickSort) для сортировки элементов
-Sub QuickSort(arr As Variant, dict As Object)
-    QuickSortRecursive arr, dict, LBound(arr), UBound(arr)
-End Sub
-
-Sub QuickSortRecursive(arr As Variant, dict As Object, first As Long, last As Long)
-    Dim pivot As Variant, i As Long, j As Long, temp As Variant
-    pivot = arr((first + last) \ 2)
-    i = first
-    j = last
-
-    Do While i <= j
-        Do While dict(arr(i)) < dict(pivot)
-            i = i + 1
-        Loop
-        Do While dict(arr(j)) > dict(pivot)
-            j = j - 1
-        Loop
-        If i <= j Then
-            temp = arr(i)
-            arr(i) = arr(j)
-            arr(j) = temp
-            i = i + 1
-            j = j - 1
-        End If
-    Loop
-
-    If first < j Then QuickSortRecursive arr, dict, first, j
-    If i < last Then QuickSortRecursive arr, dict, i, last
 End Sub

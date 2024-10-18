@@ -58,7 +58,7 @@ Sub CreateFormattedPivotTable()
         .PivotFields("Ответственный").Orientation = xlRowField
         .PivotFields("Заказчик").Orientation = xlRowField
 
-        ' Добавляем поля в столбцы
+        ' Добавляем "Категория просрочки" как первый столбец и задаём порядок элементов
         With .PivotFields("Категория просрочки")
             .Orientation = xlColumnField
             .Position = 1 ' Первым столбцом
@@ -69,9 +69,12 @@ Sub CreateFormattedPivotTable()
             .PivotItems("просрочка до 15 дней").Position = 4
         End With
 
-        ' Добавляем "Номер недели" как второй столбец
-        .PivotFields("Номер недели").Orientation = xlColumnField
-        .PivotFields("Номер недели").Position = 2
+        ' Добавляем "Номер недели" как второй столбец и сортируем по возрастанию
+        With .PivotFields("Номер недели")
+            .Orientation = xlColumnField
+            .Position = 2 ' После "Категория просрочки"
+            .AutoSort xlAscending, "Номер недели" ' Сортировка по возрастанию
+        End With
 
         ' Добавляем числовое поле
         .PivotFields("Сальдо СФ на конец периода").Orientation = xlDataField

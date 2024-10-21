@@ -1,3 +1,10 @@
+With Worksheets("Ю.В.").Rows(1)
+    .WrapText = True ' Перенос текста
+    .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру
+    .VerticalAlignment = xlCenter ' Вертикальное выравнивание по центру
+End With
+
+
 
 With Worksheets("Ю.В.")
     .Range("A1:C1").Value = .Range("A2:C2").Value ' Перенос данных из A2:C2 в A1:C1

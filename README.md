@@ -94,11 +94,15 @@ Sub свод_1137()
         .TableStyle2 = "PivotStyleMedium8"
     End With
 
-    ' Преобразуем значения в столбце "Сальдо СФ на конец периода" в финансовый формат без символа валюты
-    Set DataField = PivotTable.PivotFields("Сальдо СФ на конец периода")
-    With DataField
-        .NumberFormat = "_-* #,##0.00_-;_-* #,##0.00_-;_-* ""-""??_-;_-@_-" ' Финансовый формат без символа валюты
-    End With
+    ' Добавляем числовое поле "Сальдо СФ на конец периода" в сводную таблицу
+With PivotTable
+    .AddDataField .PivotFields("Сальдо СФ на конец периода"), "Итог по Сальдо", xlSum
+End With
+
+' Применяем форматирование с двумя знаками после запятой
+With PivotTable.DataFields(1)
+    .NumberFormat = "#,##0.00"
+End With
 
     ' Обновляем сводную таблицу
     PivotTable.RefreshTable

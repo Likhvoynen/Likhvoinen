@@ -1,3 +1,11 @@
+
+With Worksheets("Ю.В.")
+    .Rows(1).Delete
+End With
+
+
+
+
 ' Создаём новый лист "Ю.В." и удаляем, если он уже существует
     On Error Resume Next
     Set NewSheet = ActiveWorkbook.Sheets("Ю.В.")

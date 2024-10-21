@@ -1,4 +1,14 @@
 
+' Включаем повторение подписей элементов для строк и столбцов
+With PivotTable
+    .RowGrand = True
+    .ColumnGrand = True
+    .RepeatAllLabels = True
+End With
+
+
+
+
 With Worksheets("Ю.В").UsedRange
     .Borders(xlEdgeLeft).LineStyle = xlContinuous
     .Borders(xlEdgeTop).LineStyle = xlContinuous

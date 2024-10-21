@@ -1,3 +1,15 @@
+
+' Фильтруем пустые строки и строки с текстом "оптовик частный" в столбце "Сегмент"
+Dim FilterRange As Range
+Set FilterRange = DataSheet.Range("A1").CurrentRegion ' Установите диапазон фильтрации
+
+With FilterRange
+    .AutoFilter Field:=1, Criteria1:="<>" ' Убираем пустые строки в первом столбце
+    .AutoFilter Field:=1, Criteria1:="<>оптовик частный", Operator:=xlAnd ' Убираем "оптовик частный"
+End With
+
+
+
 ' Включаем повторение подписей элементов только для столбцов "Сегмент" и "Ответственный"
 With PivotTable
     .PivotFields("Сегмент").RepeatLabels = True

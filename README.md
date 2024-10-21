@@ -1,3 +1,43 @@
+' Фильтруем пустые строки и строки с текстом "оптовик частный" в столбце "Сегмент"
+Dim FilterRange As Range
+Dim LastRow As Long
+
+' Находим последний заполненный ряд
+LastRow = DataSheet.Cells(DataSheet.Rows.Count, 1).End(xlUp).Row
+
+' Устанавливаем диапазон фильтрации
+Set FilterRange = DataSheet.Range("A1").CurrentRegion
+
+' Проверяем, существует ли фильтр, и очищаем его
+If DataSheet.AutoFilterMode Then
+    DataSheet.AutoFilterMode = False
+End If
+
+' Применяем автофильтр
+With FilterRange
+    .AutoFilter Field:=2, Criteria1:="<>", Operator:=xlAnd ' Убираем пустые строки в столбце "Сегмент"
+    .AutoFilter Field:=2, Criteria1:="<>оптовик частный" ' Убираем "оптовик частный"
+End With
+
+' Копируем данные на лист "Ю.В." как значения
+Dim CopyRange As Range
+Set CopyRange = FilterRange.SpecialCells(xlCellTypeVisible)
+
+' Проверяем, есть ли данные для копирования
+If CopyRange.Rows.Count > 1 Then ' Исключаем заголовок
+    CopyRange.Copy
+    With Worksheets("Ю.В.")
+        .Range("A1").PasteSpecial Paste:=xlPasteValues
+    End With
+End If
+
+' Сбрасываем фильтр
+If DataSheet.AutoFilterMode Then
+    DataSheet.AutoFilterMode = False
+End If
+
+
+
 
 ' Фильтруем пустые строки и строки с текстом "оптовик частный" в столбце "Сегмент"
 Dim FilterRange As Range

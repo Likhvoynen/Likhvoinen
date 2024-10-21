@@ -1,3 +1,24 @@
+
+' Отключаем автоизменение ширины столбцов при обновлении
+    .PivotTableWizard PreserveFormatting:=True
+    .ManualUpdate = False
+End With
+
+' Устанавливаем фиксированную ширину 16 для всех столбцов
+PivotSheet.Columns.ColumnWidth = 16
+
+' Выполняем автоподгонку ширины только для определённых полей
+With PivotSheet
+    .Columns("A:A").AutoFit ' "Сегмент"
+    .Columns("B:B").AutoFit ' "Ответственный"
+    .Columns("C:C").AutoFit ' "Заказчик"
+End With
+
+
+
+
+
+
 Sub свод_1137()
     Application.ScreenUpdating = False
     Application.Calculation = xlCalculationManual

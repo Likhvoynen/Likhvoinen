@@ -1,3 +1,26 @@
+' Создаём новый лист "Ю.В." и удаляем, если он уже существует
+    On Error Resume Next
+    Set NewSheet = ActiveWorkbook.Sheets("Ю.В.")
+    If Not NewSheet Is Nothing Then NewSheet.Delete
+    On Error GoTo 0
+
+    ' Создаём новый лист "Ю.В."
+    Set NewSheet = ActiveWorkbook.Sheets.Add
+    NewSheet.Name = "Ю.В."
+
+    ' Копируем сводную таблицу с листа "Свод" на лист "Ю.В." как значения и форматы
+    With PivotSheet.UsedRange
+        .Copy
+        NewSheet.Cells(1, 1).PasteSpecial Paste:=xlPasteValues
+        NewSheet.Cells(1, 1).PasteSpecial Paste:=xlPasteFormats
+    End With
+
+    ' Очищаем буфер обмена и включаем обновление экрана
+    Application.CutCopyMode = False
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+
+
 
 ' Отключаем автоизменение ширины столбцов при обновлении
     .PivotTableWizard PreserveFormatting:=True

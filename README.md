@@ -1,3 +1,9 @@
+With Worksheets("Ю.В.")
+    .Rows(1).Value = .Rows(2).Value ' Перенос данных со второй строки в первую
+    .Rows(2).Delete ' Удаление второй строки
+End With
+
+
 
 With Worksheets("Ю.В.")
     .Rows(1).Delete

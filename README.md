@@ -1,3 +1,14 @@
+
+With Worksheets("Ю.В").UsedRange
+    .Borders(xlEdgeLeft).LineStyle = xlContinuous
+    .Borders(xlEdgeTop).LineStyle = xlContinuous
+    .Borders(xlEdgeBottom).LineStyle = xlContinuous
+    .Borders(xlEdgeRight).LineStyle = xlContinuous
+    .Borders(xlInsideVertical).LineStyle = xlContinuous
+    .Borders(xlInsideHorizontal).LineStyle = xlContinuous
+End With
+
+
 With Worksheets("Ю.В.").Rows(1)
     .WrapText = True ' Перенос текста
     .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру

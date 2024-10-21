@@ -1,3 +1,10 @@
+
+With Worksheets("Ю.В.")
+    .Range("A1:C1").Value = .Range("A2:C2").Value ' Перенос данных из A2:C2 в A1:C1
+    .Rows(2).Delete ' Удаление второй строки
+End With
+
+
 With Worksheets("Ю.В.")
     .Rows(1).Value = .Rows(2).Value ' Перенос данных со второй строки в первую
     .Rows(2).Delete ' Удаление второй строки

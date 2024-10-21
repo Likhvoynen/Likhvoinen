@@ -2,6 +2,14 @@ With Worksheets("Ю.В.").Rows(1)
     .WrapText = True ' Перенос текста
     .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру
     .VerticalAlignment = xlCenter ' Вертикальное выравнивание по центру
+    .Font.Bold = True ' Полужирный шрифт
+End With
+
+
+юWith Worksheets("Ю.В.").Rows(1)
+    .WrapText = True ' Перенос текста
+    .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру
+    .VerticalAlignment = xlCenter ' Вертикальное выравнивание по центру
 End With
 
 

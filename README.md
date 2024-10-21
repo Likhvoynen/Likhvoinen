@@ -4,6 +4,26 @@ Dim FilterRange As Range
 Set FilterRange = DataSheet.Range("A1").CurrentRegion ' Установите диапазон фильтрации
 
 With FilterRange
+    ' Применяем автофильтр
+    .AutoFilter Field:=2, Criteria1:="<>", Operator:=xlAnd ' Убираем пустые строки в столбце "Сегмент"
+    .AutoFilter Field:=2, Criteria1:="<>оптовик частный", Operator:=xlAnd ' Убираем "оптовик частный"
+End With
+
+' Теперь можно скопировать данные на лист "Ю.В." как значения
+' Здесь добавьте ваш код для копирования данных
+
+' После переноса данных сбрасываем фильтр
+If FilterRange.Parent.AutoFilterMode Then
+    FilterRange.AutoFilter
+End If
+
+
+
+' Фильтруем пустые строки и строки с текстом "оптовик частный" в столбце "Сегмент"
+Dim FilterRange As Range
+Set FilterRange = DataSheet.Range("A1").CurrentRegion ' Установите диапазон фильтрации
+
+With FilterRange
     .AutoFilter Field:=1, Criteria1:="<>" ' Убираем пустые строки в первом столбце
     .AutoFilter Field:=1, Criteria1:="<>оптовик частный", Operator:=xlAnd ' Убираем "оптовик частный"
 End With

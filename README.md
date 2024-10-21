@@ -1,3 +1,10 @@
+' Включаем повторение подписей элементов только для столбцов "Сегмент" и "Ответственный"
+With PivotTable
+    .PivotFields("Сегмент").RepeatLabels = True
+    .PivotFields("Ответственный").RepeatLabels = True
+End With
+
+
 
 ' Включаем повторение подписей элементов для строк и столбцов
 With PivotTable

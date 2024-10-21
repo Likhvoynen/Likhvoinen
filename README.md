@@ -3,6 +3,16 @@ With Worksheets("Ю.В.").Rows(1)
     .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру
     .VerticalAlignment = xlCenter ' Вертикальное выравнивание по центру
     .Font.Bold = True ' Полужирный шрифт
+    .Font.Color = RGB(0, 0, 0) ' Черный цвет шрифта
+End With
+
+
+
+юWith Worksheets("Ю.В.").Rows(1)
+    .WrapText = True ' Перенос текста
+    .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру
+    .VerticalAlignment = xlCenter ' Вертикальное выравнивание по центру
+    .Font.Bold = True ' Полужирный шрифт
 End With
 
 

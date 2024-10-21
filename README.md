@@ -45,6 +45,9 @@ Sub свод_1137()
     Set PivotSheet = ActiveWorkbook.Sheets.Add
     PivotSheet.Name = "Свод"
 
+' Окрашиваем весь лист "Свод" в зеленый цвет
+PivotSheet.Cells.Interior.Color = RGB(144, 238, 144) ' Светло-зеленый цвет
+
     ' Создаём PivotCache на основе данных
     Set PivotCache = ActiveWorkbook.PivotCaches.Create( _
         SourceType:=xlDatabase, _

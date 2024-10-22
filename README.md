@@ -1,3 +1,37 @@
+Sub ДобавитьТипСФВСводСФильтрацией()
+    Dim PivotTable As PivotTable
+    Dim ws As Worksheet
+    Dim pf As PivotField
+    Dim pi As PivotItem
+    
+    ' Определяем лист и сводную таблицу
+    Set ws = ActiveWorkbook.Sheets("Свод")
+    Set PivotTable = ws.PivotTables("СводнаяТаблица")
+    
+    ' Добавляем новое поле "Тип СФ" в строки
+    With PivotTable
+        .PivotFields("Тип СФ").Orientation = xlRowField
+        .PivotFields("Тип СФ").Position = 1 ' Устанавливаем первым полем в строках
+    End With
+    
+    ' Обновляем сводную таблицу
+    PivotTable.RefreshTable
+    
+    ' Получаем поле "Тип СФ"
+    Set pf = PivotTable.PivotFields("Тип СФ")
+    
+    ' Убираем все элементы, содержащие "КА" и "Кредитовое авизо"
+    For Each pi In pf.PivotItems
+        If InStr(pi.Name, "КА") > 0 Or InStr(pi.Name, "Кредитовое авизо") > 0 Then
+            pi.Visible = False
+        End If
+    Next pi
+End Sub
+
+
+
+
+
 Sub ДобавитьТипСФВСвод()
     Dim PivotTable As PivotTable
     Dim ws As Worksheet

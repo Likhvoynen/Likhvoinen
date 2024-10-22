@@ -1,3 +1,49 @@
+
+Sub ДобавитьФильтрыИСворачивания()
+    Dim PivotTable As PivotTable
+    Dim ws As Worksheet
+    Dim pf As PivotField
+    Dim pi As PivotItem
+
+    ' Определяем лист и сводную таблицу
+    Set ws = ActiveWorkbook.Sheets("Свод")
+    Set PivotTable = ws.PivotTables("СводнаяТаблица")
+    
+    ' Добавляем новое поле "Тип СФ" в строки
+    With PivotTable
+        .PivotFields("Тип СФ").Orientation = xlRowField
+        .PivotFields("Тип СФ").Position = 1 ' Устанавливаем первым полем в строках
+    End With
+    
+    ' Обновляем сводную таблицу
+    PivotTable.RefreshTable
+    
+    ' Фильтруем поле "Тип СФ", убирая значения, содержащие "КА" и "Кредитовое авизо"
+    Set pf = PivotTable.PivotFields("Тип СФ")
+    For Each pi In pf.PivotItems
+        If InStr(pi.Name, "КА") > 0 Or InStr(pi.Name, "Кредитовое авизо") > 0 Then
+            pi.Visible = False
+        End If
+    Next pi
+    
+    ' Фильтруем поле "Категория просрочки", оставляя только нужные значения
+    Set pf = PivotTable.PivotFields("Категория просрочки")
+    For Each pi In pf.PivotItems
+        If pi.Name <> "просрочка более 60 дней" And pi.Name <> "просрочка от 30 до 60 дней" And _
+           pi.Name <> "просрочка от 15 до 30 дней" And pi.Name <> "просрочка до 15 дней" Then
+            pi.Visible = False
+        End If
+    Next pi
+    
+    ' Сворачиваем все элементы по столбцу "Заказчик"
+    Set pf = PivotTable.PivotFields("Заказчик")
+    pf.ShowDetail = False
+    
+End Sub
+
+
+
+
 Sub ДобавитьТипСФВСводСФильтрацией()
     Dim PivotTable As PivotTable
     Dim ws As Worksheet

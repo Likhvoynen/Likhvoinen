@@ -1,4 +1,43 @@
 
+' Добавляем формулы суммирования в строки, где в столбце A указано "Итог"
+Dim lastRow As Long
+Dim lastCol As Long
+Dim i As Long
+Dim startRow As Long
+Dim sumRange As Range
+Dim cell As Range
+
+' Определяем последнюю заполненную строку и столбец на листе "Ю.В."
+With ws
+    lastRow = .Cells(.Rows.Count, "A").End(xlUp).Row
+    lastCol = .Cells(1, .Columns.Count).End(xlToLeft).Column
+End With
+
+' Переменная для хранения строки начала объединенной области
+startRow = 2
+
+' Проходим по всем строкам, начиная со 2-й
+For i = 2 To lastRow
+    ' Если в столбце A указано "Итог" (частичное или полное совпадение)
+    If InStr(ws.Cells(i, "A").Value, "Итог") > 0 Then
+        ' Проходим по каждому столбцу от D до последнего
+        For Each cell In ws.Range(ws.Cells(i, "D"), ws.Cells(i, lastCol))
+            ' Определяем диапазон для суммирования на основе объединенной ячейки выше
+            Set sumRange = ws.Range(ws.Cells(startRow, cell.Column), ws.Cells(i - 1, cell.Column))
+            ' Вставляем формулу суммирования
+            cell.Formula = "=SUM(" & sumRange.Address(False, False) & ")"
+        Next cell
+    End If
+    
+    ' Проверяем, объединена ли ячейка в столбце A
+    If ws.Cells(i, "A").MergeCells Then
+        ' Если да, обновляем startRow на первую строку объединенной ячейки
+        startRow = ws.Cells(i, "A").MergeArea.Row
+    End If
+Next i
+
+
+
 Sub ВставитьФормулуСуммирования()
     Dim ws As Worksheet
     Dim lastRow As Long

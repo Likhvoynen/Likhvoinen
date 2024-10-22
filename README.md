@@ -1,3 +1,32 @@
+Sub ОбъединитьСтроки()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim i As Long
+
+    ' Определяем рабочий лист "Ю.В."
+    Set ws = Worksheets("Ю.В.")
+    
+    ' Определяем последнюю строку в столбце A (предположим, что там нет пустых строк)
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+
+    ' Цикл по столбцу "Сегмент" для объединения одинаковых значений
+    For i = lastRow To 2 Step -1
+        If ws.Cells(i, 1).Value = ws.Cells(i - 1, 1).Value Then
+            ws.Range(ws.Cells(i - 1, 1), ws.Cells(i, 1)).Merge
+        End If
+    Next i
+    
+    ' Цикл по столбцу "Ответственный" для объединения одинаковых значений
+    For i = lastRow To 2 Step -1
+        If ws.Cells(i, 2).Value = ws.Cells(i - 1, 2).Value Then
+            ws.Range(ws.Cells(i - 1, 2), ws.Cells(i, 2)).Merge
+        End If
+    Next i
+End Sub
+
+
+
+
 ' Фильтруем пустые строки и строки с текстом "оптовик частный" в столбце "Сегмент"
 Dim FilterRange As Range
 Dim LastRow As Long

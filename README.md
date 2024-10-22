@@ -1,26 +1,134 @@
-' Определяем лист "Ю.В."
-Dim ws As Worksheet
-Set ws = ThisWorkbook.Sheets("Ю.В.")
+'Часть 2: Макрос для создания листа "свод"
 
-' Определяем последнюю строку и последний столбец на листе "Ю.В."
-Dim lastRow As Long, lastCol As Long
-lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row ' Последняя строка в столбце A
-lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column ' Последний столбец в первой строке
+    Dim DataSheet As Worksheet
+    Dim PivotSheet As Worksheet
+    Dim PivotTable As PivotTable
+    Dim PivotCache As PivotCache
+    Dim lastRow As Long, lastCol As Long
+    Dim SourceRange As String
+    Dim pf As PivotField
+    Dim DataField As PivotField
 
-Dim i As Long, j As Long, startRow As Long
-Dim sumRange As Range
+    ' Отключаем обновление экрана для ускорения выполнения
+    Application.ScreenUpdating = False
 
-' Переменная для хранения строки начала объединенного диапазона
-startRow = 2 ' Первая строка данных (вторая строка листа)
+    ' Определяем активный лист с данными
+    Set DataSheet = ActiveSheet
 
-' Проходим по каждой строке от 2 до последней
-For i = 2 To lastRow
-    ' Проверяем наличие "Итог" в столбце A
-    If InStr(ws.Cells(i, "A").Value, "Итог") > 0 Then
-        ' Для каждого столбца от D до последнего столбца
-        For j = 4 To lastCol ' Столбец D - это 4-й столбец
-            ' Определяем диапазон для суммирования от startRow до строки перед "Итог"
-            Set sumRange = ws.Range(ws.Cells(startRow, j), ws.Cells(i - 1, j))
+    ' Определяем последний заполненный ряд и столбец на активном листе
+    With DataSheet
+        lastRow = .Cells(.Rows.Count, 1).End(xlUp).Row
+        lastCol = .Cells(1, .Columns.Count).End(xlToLeft).Column
+        SourceRange = "'" & .Name & "'!A1:" & .Cells(lastRow, lastCol).Address(False, False)
+    End With
+
+    ' Проверяем и удаляем лист "Свод", если он уже существует
+    On Error Resume Next
+    Set PivotSheet = ActiveWorkbook.Sheets("Свод")
+    If Not PivotSheet Is Nothing Then PivotSheet.Delete
+    On Error GoTo 0
+
+    ' Создаём новый лист для сводной таблицы
+    Set PivotSheet = ActiveWorkbook.Sheets.Add
+    PivotSheet.Name = "Свод"
+    
+    ' Окрашиваем весь лист "Свод" в зеленый цвет
+PivotSheet.Tab.Color = RGB(199, 223, 190) ' Светло-зеленый цвет
+
+    ' Создаём PivotCache на основе данных
+    Set PivotCache = ActiveWorkbook.PivotCaches.Create( _
+        SourceType:=xlDatabase, _
+        SourceData:=SourceRange)
+
+    ' Создаём сводную таблицу на новом листе "Свод"
+    Set PivotTable = PivotCache.CreatePivotTable( _
+        TableDestination:=PivotSheet.Cells(3, 1), _
+        TableName:="СводнаяТаблица")
+
+    ' Настраиваем сводную таблицу
+    With PivotTable
+        .SmallGrid = True
+        .RowAxisLayout xlTabularRow ' Устанавливаем табличную форму
+
+        ' Отключаем промежуточные итоги только для поля "Ответственный"
+        On Error Resume Next
+        With .PivotFields("Ответственный")
+            .Subtotals(1) = False ' Отключение всех промежуточных итогов
+        End With
+
+        ' Добавляем поля в строки
+        .PivotFields("Сегмент").orientation = xlRowField
+        .PivotFields("Ответственный").orientation = xlRowField
+        .PivotFields("Заказчик").orientation = xlRowField
+
+        ' Добавляем поля в столбцы
+        With .PivotFields("Категория просрочки")
+            .orientation = xlColumnField
+            .position = 1 ' Первым столбцом
+            ' Устанавливаем порядок элементов
+            .PivotItems("просрочка более 60 дней").position = 1
+            .PivotItems("просрочка от 30 до 60 дней").position = 2
+            .PivotItems("просрочка от 15 до 30 дней").position = 3
+            .PivotItems("просрочка до 15 дней").position = 4
+        End With
+
+        ' Добавляем "Номер недели" как второй столбец
+        .PivotFields("Номер недели").orientation = xlColumnField
+        .PivotFields("Номер недели").position = 2
+
+        ' Добавляем числовое поле
+        .PivotFields("Сальдо СФ на конец периода").orientation = xlDataField
+        On Error GoTo 0
+
+        ' Устанавливаем стиль сводной таблицы: "Средний 8"
+        .TableStyle2 = "PivotStyleMedium8"
+    End With
+
+     ' Применяем форматирование с двумя знаками после запятой
+With PivotTable.DataFields(1)
+    .numberFormat = "#,##0.00"
+End With
+
+    ' Обновляем сводную таблицу
+    PivotTable.RefreshTable
+    
+    ' Сворачиваем все поля сводной таблицы, кроме строк
+    For Each pf In PivotTable.PivotFields
+        On Error Resume Next
+        If pf.orientation <> xlRowField Then
+            pf.ShowDetail = False ' Сворачиваем, если не строка
+        End If
+        On Error GoTo 0
+    Next pf
+    
+    ' Включаем повторение подписей элементов только для столбцов "Сегмент" и "Ответственный"
+With PivotTable
+    .PivotFields("Сегмент").RepeatLabels = True
+    .PivotFields("Ответственный").RepeatLabels = True
+End With
+
+' Делаем фильтрацию, убирая из столбца "Сегмент" пустые значения и "оптовик частный"
+ActiveSheet.PivotTables("СводнаяТаблица").PivotFields("Сегмент").PivotItems("Оптовик частный").Visible = False
+ActiveSheet.PivotTables("СводнаяТаблица").PivotFields("Сегмент").PivotItems(" ").Visible = False
+
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+w, j), ws.Cells(i - 1, j))
             
             ' Проверяем, что диапазон не пустой
             If WorksheetFunction.CountA(sumRange) > 0 Then

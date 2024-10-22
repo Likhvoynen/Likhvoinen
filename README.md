@@ -1,3 +1,37 @@
+' Определяем последнюю строку и столбец на листе
+Dim lastRow As Long, lastCol As Long
+Dim i As Long, startRow As Long
+Dim sumRange As Range
+
+' Определяем последнюю строку и последний столбец на листе
+lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+' Переменная для хранения строки начала объединенного диапазона
+startRow = 2 ' Первая строка данных (вторая строка листа)
+
+' Проходим по каждой строке от 2 до последней
+For i = 2 To lastRow
+    ' Проверяем наличие "Итог" в столбце A
+    If InStr(ws.Cells(i, "A").Value, "Итог") > 0 Then
+        ' Для каждого столбца от D до последнего столбца
+        For j = 4 To lastCol ' Столбец D - это 4-й столбец
+            ' Определяем диапазон для суммирования от startRow до строки перед "Итог"
+            Set sumRange = ws.Range(ws.Cells(startRow, j), ws.Cells(i - 1, j))
+            
+            ' Проверяем, что диапазон не пустой
+            If WorksheetFunction.CountA(sumRange) > 0 Then
+                ' Вставляем формулу в ячейку
+                ws.Cells(i, j).Formula = "=SUM(" & sumRange.Address(False, False) & ")"
+            End If
+        Next j
+        ' После строки с "Итог", обновляем startRow для следующего блока данных
+        startRow = i + 1
+    End If
+Next i
+
+
+
 
 ' Добавляем формулы суммирования в строки, где в столбце A указано "Итог"
 Dim lastRow As Long

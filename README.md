@@ -1,3 +1,44 @@
+Sub СоздатьЛистИКопироватьСводную()
+    Dim PivotSheet As Worksheet
+    Dim AnalysisSheet As Worksheet
+    Dim ParamSheet As Worksheet
+    Dim LastRow As Long, LastCol As Long
+    Dim PivotRange As Range
+
+    ' Определяем лист "Свод" и лист "Параметры"
+    Set PivotSheet = ActiveWorkbook.Sheets("Свод")
+    Set ParamSheet = ActiveWorkbook.Sheets("Параметры")
+    
+    ' Создаём новый лист "Анализ ПДЗ" и вставляем его после листа "Параметры"
+    Set AnalysisSheet = ActiveWorkbook.Sheets.Add(After:=ParamSheet)
+    AnalysisSheet.Name = "Анализ ПДЗ"
+    
+    ' Находим последнюю заполненную строку и столбец на листе "Свод"
+    With PivotSheet
+        LastRow = .Cells(.Rows.Count, 1).End(xlUp).Row
+        LastCol = .Cells(1, .Columns.Count).End(xlToLeft).Column
+        Set PivotRange = .Range(.Cells(1, 1), .Cells(LastRow, LastCol))
+    End With
+
+    ' Копируем диапазон сводной таблицы на листе "Свод"
+    PivotRange.Copy
+    
+    ' Вставляем значения и форматы на лист "Анализ ПДЗ"
+    With AnalysisSheet.Cells(1, 1)
+        .PasteSpecial Paste:=xlPasteValues
+        .PasteSpecial Paste:=xlPasteFormats
+    End With
+    
+    ' Очищаем буфер обмена
+    Application.CutCopyMode = False
+    
+    ' Автоширина для всех столбцов на листе "Анализ ПДЗ"
+    AnalysisSheet.Columns.AutoFit
+End Sub
+
+
+
+
 
 Sub ДобавитьФильтрыИСворачивания()
     Dim PivotTable As PivotTable

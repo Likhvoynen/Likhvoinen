@@ -1,3 +1,37 @@
+
+Sub ВставитьФормулуСуммирования()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim lastCol As Long
+    Dim i As Long
+    Dim sumRange As Range
+    Dim cell As Range
+
+    ' Определяем лист "Ю.В."
+    Set ws = Worksheets("Ю.В.")
+
+    ' Определяем последнюю заполненную строку и столбец
+    lastRow = ws.Cells(ws.Rows.Count, "A").End(xlUp).Row
+    lastCol = ws.Cells(1, ws.Columns.Count).End(xlToLeft).Column
+
+    ' Проходим по всем строкам, начиная со 2-й
+    For i = 2 To lastRow
+        ' Если в столбце A указано "Итог"
+        If ws.Cells(i, "A").Value = "Итог" Then
+            ' Суммируем значения начиная с D до последнего столбца
+            For Each cell In ws.Range(ws.Cells(i, "D"), ws.Cells(i, lastCol))
+                ' Определяем диапазон для суммирования
+                Set sumRange = ws.Range(ws.Cells(2, cell.Column), ws.Cells(i - 1, cell.Column))
+                ' Вставляем формулу суммирования
+                cell.Formula = "=SUM(" & sumRange.Address(False, False) & ")"
+            Next cell
+        End If
+    Next i
+End Sub
+
+
+
+
 Sub ОбъединитьСтроки()
     Dim ws As Worksheet
     Dim lastRow As Long

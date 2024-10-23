@@ -1,3 +1,12 @@
+' Удаление значений #ССЫЛКА! из столбцов D:G
+For Each cell In NewSheet.Range("D2:G" & lastRow)
+    If IsError(cell.Value) And cell.Value = CVErr(xlErrRef) Then ' Проверка на #ССЫЛКА!
+        cell.ClearContents ' Удаляем содержимое ячейки
+    End If
+Next cell
+
+
+
 
 ' Удаление значений #ССЫЛКА! из столбцов D:G
 For Each cell In NewSheet.Range("D2:G" & lastRow)

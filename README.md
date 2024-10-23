@@ -1,3 +1,77 @@
+Sub SummarizeBetweenTotalsAndOverallTotal()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim currentRow As Long
+    Dim nextTotalRow As Long
+    Dim sumStartRow As Long
+    Dim sumRowsD As String, sumRowsE As String, sumRowsF As String, sumRowsG As String
+    Dim r As Long
+    
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Укажите название вашего листа
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row ' Последняя заполненная строка
+    
+    currentRow = lastRow
+    sumRowsD = ""
+    sumRowsE = ""
+    sumRowsF = ""
+    sumRowsG = ""
+    
+    ' Идём от последней строки к первой
+    Do While currentRow >= 2
+        ' Если находим строку с "Итог" в столбце A
+        If InStr(1, ws.Cells(currentRow, 1).Value, "Итог", vbTextCompare) > 0 Then
+            ' Устанавливаем границы диапазона для суммирования
+            sumStartRow = currentRow + 1 ' Начало диапазона после строки "Итог"
+            nextTotalRow = currentRow - 1
+            
+            ' Ищем следующую строку с "Итог" выше
+            Do While nextTotalRow >= 2
+                If InStr(1, ws.Cells(nextTotalRow, 1).Value, "Итог", vbTextCompare) > 0 Then
+                    Exit Do ' Выходим, когда находим следующий "Итог"
+                End If
+                nextTotalRow = nextTotalRow - 1
+            Loop
+            
+            ' Вставляем формулу суммирования в строку с "Итог" для столбцов D:G
+            ws.Cells(currentRow, 4).Formula = "=SUM(D" & nextTotalRow + 1 & ":D" & sumStartRow - 1 & ")"
+            ws.Cells(currentRow, 5).Formula = "=SUM(E" & nextTotalRow + 1 & ":E" & sumStartRow - 1 & ")"
+            ws.Cells(currentRow, 6).Formula = "=SUM(F" & nextTotalRow + 1 & ":F" & sumStartRow - 1 & ")"
+            ws.Cells(currentRow, 7).Formula = "=SUM(G" & nextTotalRow + 1 & ":G" & sumStartRow - 1 & ")"
+            
+            ' Добавляем строки с "Итог" в список для общего суммирования
+            If sumRowsD = "" Then
+                sumRowsD = "D" & currentRow
+                sumRowsE = "E" & currentRow
+                sumRowsF = "F" & currentRow
+                sumRowsG = "G" & currentRow
+            Else
+                sumRowsD = sumRowsD & ",D" & currentRow
+                sumRowsE = sumRowsE & ",E" & currentRow
+                sumRowsF = sumRowsF & ",F" & currentRow
+                sumRowsG = sumRowsG & ",G" & currentRow
+            End If
+        End If
+        
+        currentRow = currentRow - 1 ' Переходим к следующей строке вверх
+    Loop
+    
+    ' Теперь добавим формулу суммирования для строки с "Общий итог"
+    For r = 2 To lastRow
+        If InStr(1, ws.Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+            If sumRowsD <> "" Then
+                ws.Cells(r, "D").Formula = "=SUM(" & sumRowsD & ")"
+                ws.Cells(r, "E").Formula = "=SUM(" & sumRowsE & ")"
+                ws.Cells(r, "F").Formula = "=SUM(" & sumRowsF & ")"
+                ws.Cells(r, "G").Formula = "=SUM(" & sumRowsG & ")"
+            End If
+            Exit For ' Выход из цикла после нахождения первой строки с "Общий итог"
+        End If
+    Next r
+End Sub
+
+
+
+
 
 ' Теперь добавим формулу суммирования для строки с "Общий итог"
     Dim sumRows As String

@@ -1,3 +1,43 @@
+
+Sub SummarizeByMatchingNames()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim currentRow As Long
+    Dim nextRow As Long
+    Dim currentValue As String
+    Dim totalRow As Long
+    
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Укажите название вашего листа
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row ' Определение последней строки в столбце A
+    currentRow = 2 ' Предполагается, что первая строка содержит заголовки
+    
+    Do While currentRow <= lastRow
+        currentValue = ws.Cells(currentRow, 1).Value
+        
+        ' Поиск строк с одинаковыми значениями в столбце A до строки с "Итог"
+        If InStr(1, currentValue, "Итог", vbTextCompare) > 0 Then
+            totalRow = currentRow ' Строка с "Итог"
+            
+            ' Определение начала диапазона для суммирования
+            nextRow = totalRow - 1
+            Do While nextRow >= 2 And ws.Cells(nextRow, 1).Value = ws.Cells(nextRow - 1, 1).Value
+                nextRow = nextRow - 1
+            Loop
+            
+            ' Вставка формулы для суммирования в строку с "Итог"
+            ws.Cells(totalRow, 4).Formula = "=SUM(D" & nextRow & ":D" & totalRow - 1 & ")"
+            ws.Cells(totalRow, 5).Formula = "=SUM(E" & nextRow & ":E" & totalRow - 1 & ")"
+            ws.Cells(totalRow, 6).Formula = "=SUM(F" & nextRow & ":F" & totalRow - 1 & ")"
+            ws.Cells(totalRow, 7).Formula = "=SUM(G" & nextRow & ":G" & totalRow - 1 & ")"
+        End If
+        
+        currentRow = currentRow + 1
+    Loop
+End Sub
+
+
+
+
 Sub SummarizeByColumnA()
     Dim ws As Worksheet
     Dim lastRow As Long

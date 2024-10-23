@@ -1,4 +1,32 @@
 ' Удаляем строки между строками с "Итог", если они пустые
+Dim currentRow As Long
+Dim nextRow As Long
+
+For currentRow = 2 To lastRow
+    If InStr(1, Cells(currentRow, "A").Value, "итог", vbTextCompare) > 0 And _
+       InStr(1, Cells(currentRow, "A").Value, "общий итог", vbTextCompare) = 0 Then
+        
+        ' Ищем строку ниже с "итог"
+        nextRow = currentRow + 1
+        Do While nextRow <= lastRow And InStr(1, Cells(nextRow, "A").Value, "итог", vbTextCompare) = 0
+            nextRow = nextRow + 1
+        Loop
+        
+        ' Если найдена следующая строка с "итог", удаляем верхнюю строку
+        If nextRow <= lastRow And InStr(1, Cells(nextRow, "A").Value, "итог", vbTextCompare) > 0 And _
+           InStr(1, Cells(nextRow, "A").Value, "общий итог", vbTextCompare) = 0 Then
+            Rows(currentRow).Delete
+            lastRow = lastRow - 1 ' Обновляем последнюю строку после удаления
+            currentRow = currentRow - 1 ' Возвращаемся на одну строку назад, чтобы не пропустить следующую строку
+        End If
+    End If
+Next currentRow
+
+
+
+
+
+' Удаляем строки между строками с "Итог", если они пустые
 Dim deleteRow As Long
 Dim rowBelow As Long
 

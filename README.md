@@ -1,3 +1,17 @@
+
+' Удаление значений #ССЫЛКА! из столбцов D:G
+Dim cell As Range
+
+For Each cell In NewSheet.Range("D2:G" & lastRow)
+    If cell.Value = CVErr(xlErrRef) Then ' Проверка на #ССЫЛКА!
+        cell.Value = "" ' Заменяем на пустую строку
+    End If
+Next cell
+
+
+
+
+
 Sub ДЗ_часть_3()
     Dim PivotTable As PivotTable
     Dim ws As Worksheet

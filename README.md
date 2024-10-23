@@ -1,3 +1,37 @@
+Sub SummarizeByColumnA()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim currentRow As Long
+    Dim nextRow As Long
+    Dim currentValue As String
+
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Укажите название вашего листа
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row ' Определение последней строки в столбце A
+    currentRow = 2 ' Предполагается, что первая строка содержит заголовки
+
+    Do While currentRow <= lastRow
+        currentValue = ws.Cells(currentRow, 1).Value
+        nextRow = currentRow + 1
+        
+        ' Поиск одинаковых значений в столбце A
+        Do While nextRow <= lastRow And ws.Cells(nextRow, 1).Value = currentValue
+            nextRow = nextRow + 1
+        Loop
+        
+        ' Вставка формулы для суммирования диапазонов D:G
+        ws.Cells(nextRow, 1).Value = currentValue
+        ws.Cells(nextRow, 4).Formula = "=SUM(D" & currentRow & ":D" & nextRow - 1 & ")"
+        ws.Cells(nextRow, 5).Formula = "=SUM(E" & currentRow & ":E" & nextRow - 1 & ")"
+        ws.Cells(nextRow, 6).Formula = "=SUM(F" & currentRow & ":F" & nextRow - 1 & ")"
+        ws.Cells(nextRow, 7).Formula = "=SUM(G" & currentRow & ":G" & nextRow - 1 & ")"
+        
+        currentRow = nextRow + 1
+    Loop
+End Sub
+
+
+
+
 Sub СоздатьЛистИКопироватьСводную()
     Dim PivotSheet As Worksheet
     Dim AnalysisSheet As Worksheet

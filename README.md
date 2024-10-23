@@ -1,3 +1,45 @@
+
+' Теперь добавим формулу суммирования для строки с "Общий итог"
+Dim sumRowsD As String, sumRowsE As String, sumRowsF As String, sumRowsG As String
+sumRowsD = ""
+sumRowsE = ""
+sumRowsF = ""
+sumRowsG = ""
+
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "итог", vbTextCompare) > 0 Then
+        If InStr(1, Cells(r, "A").Value, "общий итог", vbTextCompare) = 0 Then
+            If sumRowsD = "" Then
+                sumRowsD = "D" & r
+                sumRowsE = "E" & r
+                sumRowsF = "F" & r
+                sumRowsG = "G" & r
+            Else
+                sumRowsD = sumRowsD & ",D" & r
+                sumRowsE = sumRowsE & ",E" & r
+                sumRowsF = sumRowsF & ",F" & r
+                sumRowsG = sumRowsG & ",G" & r
+            End If
+        End If
+    End If
+Next r
+
+' Вставьте формулы суммирования в строку, где есть "Общий итог"
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+        If sumRowsD <> "" Then
+            Cells(r, "D").Formula = "=SUM(" & sumRowsD & ")"
+            Cells(r, "E").Formula = "=SUM(" & sumRowsE & ")"
+            Cells(r, "F").Formula = "=SUM(" & sumRowsF & ")"
+            Cells(r, "G").Formula = "=SUM(" & sumRowsG & ")"
+        End If
+        Exit For ' Выход из цикла после нахождения первой строки с "Общий итог"
+    End If
+Next r
+
+
+
+
 Sub SummarizeBetweenTotalsAndOverallTotal()
     Dim ws As Worksheet
     Dim lastRow As Long

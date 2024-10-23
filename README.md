@@ -1,4 +1,57 @@
 
+Sub SummarizeByMatchingNamesWithoutFormula()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim currentRow As Long
+    Dim nextRow As Long
+    Dim currentValue As String
+    Dim totalRow As Long
+    Dim sumD As Double, sumE As Double, sumF As Double, sumG As Double
+    
+    Set ws = ThisWorkbook.Sheets("Sheet1") ' Укажите название вашего листа
+    lastRow = ws.Cells(ws.Rows.Count, 1).End(xlUp).Row ' Определение последней строки в столбце A
+    currentRow = 2 ' Предполагается, что первая строка содержит заголовки
+    
+    Do While currentRow <= lastRow
+        currentValue = ws.Cells(currentRow, 1).Value
+        
+        ' Поиск строки с "Итог" в столбце A
+        If InStr(1, currentValue, "Итог", vbTextCompare) > 0 Then
+            totalRow = currentRow ' Строка с "Итог"
+            
+            ' Инициализация переменных для суммирования
+            sumD = 0
+            sumE = 0
+            sumF = 0
+            sumG = 0
+            
+            ' Поиск диапазона для суммирования (до строки с "Итог")
+            nextRow = totalRow - 1
+            Do While nextRow >= 2 And ws.Cells(nextRow, 1).Value = ws.Cells(nextRow - 1, 1).Value
+                sumD = sumD + ws.Cells(nextRow, 4).Value
+                sumE = sumE + ws.Cells(nextRow, 5).Value
+                sumF = sumF + ws.Cells(nextRow, 6).Value
+                sumG = sumG + ws.Cells(nextRow, 7).Value
+                nextRow = nextRow - 1
+            Loop
+            
+            ' Добавление суммы в строку с "Итог" в столбцы D:G
+            sumD = sumD + ws.Cells(nextRow, 4).Value
+            sumE = sumE + ws.Cells(nextRow, 5).Value
+            sumF = sumF + ws.Cells(nextRow, 6).Value
+            sumG = sumG + ws.Cells(nextRow, 7).Value
+            
+            ws.Cells(totalRow, 4).Value = sumD
+            ws.Cells(totalRow, 5).Value = sumE
+            ws.Cells(totalRow, 6).Value = sumF
+            ws.Cells(totalRow, 7).Value = sumG
+        End If
+        
+        currentRow = currentRow + 1
+    Loop
+End Sub
+
+
 Sub SummarizeByMatchingNames()
     Dim ws As Worksheet
     Dim lastRow As Long

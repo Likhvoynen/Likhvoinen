@@ -1,3 +1,376 @@
+Sub ДЗ_часть_3()
+    Dim PivotTable As PivotTable
+    Dim ws As Worksheet
+    Dim NewSheet As Worksheet
+    Dim pf As PivotField
+    Dim pi As PivotItem
+    Dim pivotTableRange As Range
+    Dim sumRowsD As String, sumRowsE As String, sumRowsF As String, sumRowsG As String
+
+    ' Определяем лист и сводную таблицу
+    Set ws = ActiveWorkbook.Sheets("Свод")
+    Set PivotTable = ws.PivotTables("СводнаяТаблица")
+    
+    ' Добавляем новое поле "Тип СФ" в строки
+    With PivotTable
+        .PivotFields("Тип СФ").orientation = xlRowField
+        .PivotFields("Тип СФ").position = 4 ' Устанавливаем в четвёртую позицию в строках
+    End With
+    
+    ' Обновляем сводную таблицу
+    PivotTable.RefreshTable
+    
+    ' Фильтруем поле "Тип СФ", убирая значения, содержащие "КА" и "Кредитовое авизо"
+    Set pf = PivotTable.PivotFields("Тип СФ")
+    On Error Resume Next ' Игнорируем ошибку, если элемент уже скрыт
+    For Each pi In pf.PivotItems
+        If InStr(pi.Name, "КА") > 0 Or InStr(pi.Name, "Кредитовое авизо") > 0 Then
+            pi.Visible = False
+        End If
+    Next pi
+    On Error GoTo 0 ' Включаем обработку ошибок обратно
+    
+    ' Фильтруем поле "Категория просрочки", оставляя только нужные значения
+    Set pf = PivotTable.PivotFields("Категория просрочки")
+    On Error Resume Next ' Игнорируем ошибку, если элемент уже скрыт
+    For Each pi In pf.PivotItems
+        If pi.Name <> "просрочка более 60 дней" And _
+           pi.Name <> "просрочка от 30 до 60 дней" And _
+           pi.Name <> "просрочка от 15 до 30 дней" And _
+           pi.Name <> "просрочка до 15 дней" Then
+            pi.Visible = False
+        End If
+    Next pi
+    On Error GoTo 0 ' Включаем обработку ошибок обратно
+    
+     ' Фильтруем поле "Тип СФ", убирая значения, содержащие "Факторинг" и "Суды и прочие"
+    Set pf = PivotTable.PivotFields("Сегмент")
+    On Error Resume Next ' Игнорируем ошибку, если элемент уже скрыт
+    For Each pi In pf.PivotItems
+        If InStr(pi.Name, "Факторинг") > 0 Or InStr(pi.Name, "Суды и прочие") > 0 Then
+            pi.Visible = False
+        End If
+    Next pi
+    On Error GoTo 0 ' Включаем обработку ошибок обратно
+    
+    ' Сворачиваем все элементы по столбцу "Заказчик"
+    Set pf = PivotTable.PivotFields("Заказчик")
+    pf.ShowDetail = False
+    
+    ' Создаем новый лист с именем "Анализ ПДЗ"
+    On Error Resume Next ' Игнорируем ошибку, если лист уже существует
+    Set NewSheet = ActiveWorkbook.Sheets("Анализ ПДЗ")
+    On Error GoTo 0
+
+    If NewSheet Is Nothing Then
+        Set NewSheet = ActiveWorkbook.Sheets.Add(After:=ActiveWorkbook.Sheets(ActiveWorkbook.Sheets.Count))
+        NewSheet.Name = "Анализ ПДЗ"
+    Else
+        ' Если лист уже существует, очищаем его
+        NewSheet.Cells.Clear
+    End If
+
+' Окрашиваем лист "Анализ ПДЗ" в оранжевый цвет
+NewSheet.Tab.Color = RGB(255, 204, 153) ' Светло-оранжевый цвет
+
+    ' Определяем диапазон сводной таблицы
+    Set pivotTableRange = PivotTable.TableRange2
+    
+     ' Копируем сводную таблицу с листа "Свод" на лист "Анализ ПДЗ" как значения и приводим к общему формату
+    pivotTableRange.Copy
+    NewSheet.Cells(1, 1).PasteSpecial Paste:=xlPasteValues ' Вставляем как значения
+    NewSheet.Cells(1, 1).PasteSpecial Paste:=xlPasteFormats ' Вставляем форматирование
+    Application.CutCopyMode = False ' Очищаем буфер обмена
+
+    With Worksheets("Анализ ПДЗ")
+    .Rows(1).Delete
+End With
+
+With Worksheets("Анализ ПДЗ")
+    .Range("A1:C1").Value = .Range("A2:C2").Value ' Перенос данных из A2:C2 в A1:C1
+    .Rows(2).Delete ' Удаление второй строки
+End With
+
+With Worksheets("Анализ ПДЗ").Rows(1)
+    .WrapText = True ' Перенос текста
+    .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру
+    .VerticalAlignment = xlCenter ' Вертикальное выравнивание по центру
+    .Font.Bold = True ' Жирный шрифт
+    .Font.Color = RGB(0, 0, 0) ' Черный цвет шрифта
+End With
+    
+  ' Удаляем столбец D
+    NewSheet.Columns("D").Delete
+
+     ' Устанавливаем ширину всех столбцов на активном листе в соответствии с длиной текста
+    ActiveSheet.Columns.AutoFit
+    
+    ' Удаляем строки, где значения в столбце H меньше 10
+    lastRow = NewSheet.Cells(NewSheet.Rows.Count, "H").End(xlUp).Row
+    For i = lastRow To 1 Step -1
+        If IsNumeric(NewSheet.Cells(i, "H").Value) Then
+            If NewSheet.Cells(i, "H").Value < 10 Then
+                NewSheet.Rows(i).Delete
+            End If
+        End If
+    Next i
+    
+      ' Удаляем строки, где значения в столбце С равно "Вертекс АО"
+    lastRow = NewSheet.Cells(NewSheet.Rows.Count, "C").End(xlUp).Row
+For i = lastRow To 1 Step -1
+    If NewSheet.Cells(i, "C").Value = "ВЕРТЕКС АО" Then
+        NewSheet.Rows(i).Delete
+    End If
+Next i
+
+' Удаляем строки с итогом, если в них нет данных
+Dim rowBelow As Long
+
+    lastRow = Cells(Rows.Count, "A").End(xlUp).Row ' Определяем последнюю строку по столбцу A
+
+    For currentRow = lastRow To 2 Step -1 ' Проходим с конца к началу
+        ' Проверяем, содержит ли текущая строка "итог", но не "общий итог"
+        If InStr(1, Cells(currentRow, "A").Value, "итог", vbTextCompare) > 0 And _
+           InStr(1, Cells(currentRow, "A").Value, "общий итог", vbTextCompare) = 0 Then
+            
+            ' Ищем строку ниже
+            rowBelow = currentRow + 1
+            
+            ' Проверяем, что следующая строка существует и содержит "итог", но не "общий итог"
+            If rowBelow <= lastRow And InStr(1, Cells(rowBelow, "A").Value, "итог", vbTextCompare) > 0 And _
+               InStr(1, Cells(rowBelow, "A").Value, "общий итог", vbTextCompare) = 0 Then
+                
+                ' Проверяем, что между текущей и следующей строками нет других строк с данными
+                Dim emptyRows As Boolean
+                emptyRows = True
+                
+                Dim checkRow As Long
+                For checkRow = currentRow + 1 To rowBelow - 1
+                    If Not IsEmpty(Cells(checkRow, "A").Value) Then
+                        emptyRows = False
+                        Exit For
+                    End If
+                Next checkRow
+                
+                ' Если между строками только пустые строки, удаляем нижнюю строку
+                If emptyRows Then
+                    Rows(rowBelow).Delete
+                    lastRow = lastRow - 1 ' Обновляем последнюю строку после удаления
+                End If
+            End If
+        End If
+    Next currentRow
+
+    
+  ' Найдите последнюю заполненную строку в столбцах D:G
+    lastRow = Cells(Rows.Count, "D").End(xlUp).Row
+    Dim lastRowH As Long
+    lastRowH = Cells(Rows.Count, "G").End(xlUp).Row
+    lastRow = Application.WorksheetFunction.Max(lastRow, lastRowH)
+
+    ' Вставьте формулу суммирования в столбец H, начиная со второй строки
+    For i = 2 To lastRow
+        Cells(i, "H").formula = "=SUM(D" & i & ":G" & i & ")"
+    Next i
+    
+' Вставьте формулу суммирования в столбцы D:G, начиная со второй строки
+    Dim nextRow As Long
+    Dim currentValue As String
+    Dim totalRow As Long
+    
+    lastRow = Cells(ws.Rows.Count, 1).End(xlUp).Row ' Определение последней строки в столбце A
+    currentRow = 2 ' Предполагается, что первая строка содержит заголовки
+    
+    Do While currentRow <= lastRow
+        currentValue = Cells(currentRow, 1).Value
+        
+        ' Поиск строк с одинаковыми значениями в столбце A до строки с "Итог"
+        If InStr(1, currentValue, "Итог", vbTextCompare) > 0 Then
+            totalRow = currentRow ' Строка с "Итог"
+            
+            ' Определение начала диапазона для суммирования
+            nextRow = totalRow - 1
+            Do While nextRow >= 2 And Cells(nextRow, 1).Value = Cells(nextRow - 1, 1).Value
+                nextRow = nextRow - 1
+            Loop
+            
+            ' Вставка формулы для суммирования в строку с "Итог"
+            Cells(totalRow, 4).formula = "=SUM(D" & nextRow & ":D" & totalRow - 1 & ")"
+            Cells(totalRow, 5).formula = "=SUM(E" & nextRow & ":E" & totalRow - 1 & ")"
+            Cells(totalRow, 6).formula = "=SUM(F" & nextRow & ":F" & totalRow - 1 & ")"
+            Cells(totalRow, 7).formula = "=SUM(G" & nextRow & ":G" & totalRow - 1 & ")"
+        End If
+        
+        currentRow = currentRow + 1
+    Loop
+    
+
+' Теперь добавим формулу суммирования для строки с "Общий итог"
+sumRowsD = ""
+sumRowsE = ""
+sumRowsF = ""
+sumRowsG = ""
+
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "итог", vbTextCompare) > 0 Then
+        If InStr(1, Cells(r, "A").Value, "общий итог", vbTextCompare) = 0 Then
+            If sumRowsD = "" Then
+                sumRowsD = "D" & r
+                sumRowsE = "E" & r
+                sumRowsF = "F" & r
+                sumRowsG = "G" & r
+            Else
+                sumRowsD = sumRowsD & ",D" & r
+                sumRowsE = sumRowsE & ",E" & r
+                sumRowsF = sumRowsF & ",F" & r
+                sumRowsG = sumRowsG & ",G" & r
+            End If
+        End If
+    End If
+Next r
+
+' Вставьте формулы суммирования в строку, где есть "Общий итог"
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+        If sumRowsD <> "" Then
+            Cells(r, "D").formula = "=SUM(" & sumRowsD & ")"
+            Cells(r, "E").formula = "=SUM(" & sumRowsE & ")"
+            Cells(r, "F").formula = "=SUM(" & sumRowsF & ")"
+            Cells(r, "G").formula = "=SUM(" & sumRowsG & ")"
+        End If
+        Exit For ' Выход из цикла после нахождения первой строки с "Общий итог"
+    End If
+Next r
+
+ ' Определяем позицию для вставки новых столбцов (после столбца H)
+    Set ws = ActiveWorkbook.Sheets("Анализ ПДЗ")
+    Dim startColumn As Integer
+    startColumn = 9 ' Столбец I (H = 8, I = 9)
+
+    ' Вставляем новые столбцы по одному
+    For i = 0 To 8
+    Columns(startColumn + i).Insert Shift:=xlToRight
+    Next i
+
+    ' Добавляем заголовки столбцов
+    Cells(1, startColumn).Value = "Техническая ПДЗ"
+    Cells(1, startColumn + 1).Value = "Действительная ПДЗ"
+    Cells(1, startColumn + 2).Value = "Дата возникновения действительной ПДЗ"
+    Cells(1, startColumn + 3).Value = "КЛ СК"
+    Cells(1, startColumn + 4).Value = "Крайняя дата Уведомления СК"
+    Cells(1, startColumn + 5).Value = "Отсрочка СК"
+    Cells(1, startColumn + 6).Value = "Отсрочка ВЕРТЕКС"
+    Cells(1, startColumn + 7).Value = "Комментарий"
+    Cells(1, startColumn + 8).Value = "Комментарий" ' Второй комментарий
+
+   ' Задаем цвет заливки для заголовков новых столбцов (L1, M1, N1, O1, P1)
+    Cells(1, startColumn + 3).Interior.Color = RGB(255, 204, 0) ' L1
+    Cells(1, startColumn + 4).Interior.Color = RGB(255, 204, 0) ' M1
+    Cells(1, startColumn + 5).Interior.Color = RGB(255, 204, 0) ' N1
+    Cells(1, startColumn + 6).Interior.Color = RGB(255, 204, 0) ' O1
+    Cells(1, startColumn + 7).Interior.Color = RGB(255, 204, 0) ' P1
+    
+    
+   ' Суммирование столбцов I:J
+   lastRow = Cells(ws.Rows.Count, 1).End(xlUp).Row ' Определение последней строки в столбце A
+    currentRow = 2 ' Предполагается, что первая строка содержит заголовки
+    
+    Do While currentRow <= lastRow
+        currentValue = Cells(currentRow, 1).Value
+        
+        ' Поиск строк с одинаковыми значениями в столбце A до строки с "Итог"
+        If InStr(1, currentValue, "Итог", vbTextCompare) > 0 Then
+            totalRow = currentRow ' Строка с "Итог"
+            
+            ' Определение начала диапазона для суммирования
+            nextRow = totalRow - 1
+            Do While nextRow >= 2 And Cells(nextRow, 1).Value = Cells(nextRow - 1, 1).Value
+                nextRow = nextRow - 1
+            Loop
+            
+            ' Вставка формулы для суммирования в строку с "Итог" для столбцов I:J
+            Cells(totalRow, 9).formula = "=SUM(I" & nextRow & ":I" & totalRow - 1 & ")"
+            Cells(totalRow, 10).formula = "=SUM(J" & nextRow & ":J" & totalRow - 1 & ")"
+        End If
+        
+        currentRow = currentRow + 1
+    Loop
+    
+    ' Теперь добавим формулу суммирования для строки с "Общий итог"
+    Dim sumRowsI As String
+    Dim sumRowsJ As String
+    
+    For r = 2 To lastRow
+        If InStr(1, Cells(r, "A").Value, "итог", vbTextCompare) > 0 Then
+            If InStr(1, Cells(r, "A").Value, "общий итог", vbTextCompare) = 0 Then
+                If sumRowsI = "" Then
+                    sumRowsI = "I" & r
+                    sumRowsJ = "J" & r
+                Else
+                    sumRowsI = sumRowsI & ",I" & r
+                    sumRowsJ = sumRowsJ & ",J" & r
+                End If
+            End If
+        End If
+    Next r
+
+    ' Вставьте формулы суммирования в строку, где есть "Общий итог"
+    For r = 2 To lastRow
+        If InStr(1, ws.Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+            If sumRowsI <> "" Then
+                Cells(r, "I").formula = "=SUM(" & sumRowsI & ")"
+                Cells(r, "J").formula = "=SUM(" & sumRowsJ & ")"
+            End If
+            Exit For ' Выход из цикла после нахождения первой строки с "Общий итог"
+        End If
+    Next r
+    
+    With Worksheets("Анализ ПДЗ").usedRange
+    .Borders(xlEdgeLeft).LineStyle = xlContinuous
+    .Borders(xlEdgeTop).LineStyle = xlContinuous
+    .Borders(xlEdgeBottom).LineStyle = xlContinuous
+    .Borders(xlEdgeRight).LineStyle = xlContinuous
+    .Borders(xlInsideVertical).LineStyle = xlContinuous
+    .Borders(xlInsideHorizontal).LineStyle = xlContinuous
+End With
+
+' Установка ширины столбцов D:H на 16
+    ws.Columns("D:H").ColumnWidth = 16
+    
+    ' Автоматическая настройка ширины для остальных столбцов
+    Dim col As Range
+    For Each col In ws.Columns("A:C") ' Столбцы A:C
+        col.AutoFit
+    Next col
+    For Each col In ws.Columns("I:Z") ' Столбцы I и далее (можно изменить на нужные)
+        col.AutoFit
+    Next col
+    
+    ' Установка масштаба листа на 80%
+    ws.Parent.Windows(1).Zoom = 80
+    
+    ' Очищаем буфер обмена
+    Application.CutCopyMode = False
+    
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 ' Удаляем строки между строками с "Итог", если они пустые
 Dim deleteRow As Long

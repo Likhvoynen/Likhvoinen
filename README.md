@@ -7,6 +7,69 @@ Sub ДЗ_часть_3()
     Dim pivotTableRange As Range
     Dim sumRowsD As String, sumRowsE As String, sumRowsF As String, sumRowsG As String
 
+    ' Сохраняем состояние сводной таблицы до изменений
+    Dim pivotFieldState As Collection
+    Set pivotFieldState = New Collection
+    
+    Set ws = ActiveWorkbook.Sheets("Свод")
+    Set PivotTable = ws.PivotTables("СводнаяТаблица")
+    
+    ' Сохраняем фильтры полей сводной таблицы
+    For Each pf In PivotTable.PivotFields
+        Dim fieldState As Dictionary
+        Set fieldState = New Dictionary
+        fieldState.Add "Orientation", pf.orientation
+        fieldState.Add "Position", pf.position
+        
+        Dim visibleItems As Collection
+        Set visibleItems = New Collection
+        For Each pi In pf.PivotItems
+            If pi.Visible Then visibleItems.Add pi.Name
+        Next pi
+        fieldState.Add "VisibleItems", visibleItems
+        
+        pivotFieldState.Add fieldState, pf.Name
+    Next pf
+    
+    ' (Далее код с изменениями сводной таблицы, созданием нового листа и форматированием...)
+    
+    ' Восстанавливаем сводную таблицу к исходному состоянию после всех операций
+    For Each pf In PivotTable.PivotFields
+        If pivotFieldState.Exists(pf.Name) Then
+            Dim savedState As Dictionary
+            Set savedState = pivotFieldState(pf.Name)
+            
+            ' Восстанавливаем ориентацию и позицию полей
+            pf.orientation = savedState("Orientation")
+            pf.position = savedState("Position")
+            
+            ' Восстанавливаем видимые элементы
+            Set visibleItems = savedState("VisibleItems")
+            For Each pi In pf.PivotItems
+                If visibleItems.Contains(pi.Name) Then
+                    pi.Visible = True
+                Else
+                    pi.Visible = False
+                End If
+            Next pi
+        End If
+    Next pf
+End Sub
+
+
+
+
+
+
+Sub ДЗ_часть_3()
+    Dim PivotTable As PivotTable
+    Dim ws As Worksheet
+    Dim NewSheet As Worksheet
+    Dim pf As PivotField
+    Dim pi As PivotItem
+    Dim pivotTableRange As Range
+    Dim sumRowsD As String, sumRowsE As String, sumRowsF As String, sumRowsG As String
+
     ' Определяем лист и сводную таблицу
     Set ws = ActiveWorkbook.Sheets("Свод")
     Set PivotTable = ws.PivotTables("СводнаяТаблица")

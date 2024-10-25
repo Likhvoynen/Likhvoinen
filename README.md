@@ -1,3 +1,78 @@
+Sub TransferData()
+    Dim sourceSheet As Worksheet, targetSheet As Worksheet
+    Dim lastRowTarget As Long, lastRowSource As Long
+    Dim sourceDate As Variant, dateColumn As Range
+    Dim cell As Range
+    Dim wbTarget As Workbook
+    
+    ' Запрос даты у пользователя
+    sourceDate = Application.InputBox("Введите дату для фильтрации (ДД.ММ.ГГГГ):", Type:=2)
+    If sourceDate = False Then Exit Sub ' Пользователь нажал Отмена
+
+    ' Проверка на правильный формат даты
+    If Not IsDate(sourceDate) Then
+        MsgBox "Неправильный формат даты. Пожалуйста, введите корректную дату."
+        Exit Sub
+    End If
+    
+    ' Установка активного листа как исходного листа
+    Set sourceSheet = ThisWorkbook.ActiveSheet
+
+    ' Открытие целевого файла
+    Set wbTarget = Application.Workbooks.Open("путь_к_целевому_файлу.xlsx")
+    Set targetSheet = wbTarget.Sheets("план на месяц")
+    
+    ' Нахождение последней заполненной строки в столбце AV на целевом листе
+    lastRowTarget = targetSheet.Cells(targetSheet.Rows.Count, "AV").End(xlUp).Row + 1
+    
+    ' Нахождение последней строки на исходном листе
+    lastRowSource = sourceSheet.Cells(sourceSheet.Rows.Count, "B").End(xlUp).Row
+    
+    ' Определение диапазона столбца B с данными
+    Set dateColumn = sourceSheet.Range("B2:B" & lastRowSource)
+    
+    ' Перебор каждой строки с проверкой на соответствие дате
+    For Each cell In dateColumn
+        If cell.Value = CDate(sourceDate) Then
+            With targetSheet
+                .Cells(lastRowTarget, "C").Value = cell.Offset(0, 19).Value ' Столбец U -> C
+                .Cells(lastRowTarget, "D").Value = cell.Offset(0, 20).Value ' Столбец V -> D
+                .Cells(lastRowTarget, "H").Value = cell.Offset(0, 21).Value ' Столбец W -> H
+                .Cells(lastRowTarget, "M").Value = cell.Offset(0, 23).Value ' Столбец Y -> M
+                .Cells(lastRowTarget, "O").Value = cell.Offset(0, 25).Value ' Столбец AA -> O
+                .Cells(lastRowTarget, "R").Value = cell.Offset(0, 3).Value  ' Столбец D -> R
+                .Cells(lastRowTarget, "S").Value = cell.Offset(0, 8).Value  ' Столбец I -> S
+                .Cells(lastRowTarget, "T").Value = cell.Offset(0, 6).Value  ' Столбец G -> T
+                .Cells(lastRowTarget, "U").Value = cell.Offset(0, 7).Value  ' Столбец H -> U
+                .Cells(lastRowTarget, "V").Value = cell.Offset(0, 13).Value ' Столбец N -> V
+                .Cells(lastRowTarget, "W").Value = cell.Offset(0, 16).Value ' Столбец Q -> W
+                .Cells(lastRowTarget, "AE").Value = cell.Offset(0, 19).Value ' Столбец T -> AE
+                .Cells(lastRowTarget, "AI").Value = cell.Offset(0, 23).Value ' Столбец X -> AI
+                .Cells(lastRowTarget, "AK").Value = cell.Offset(0, 14).Value ' Столбец O -> AK
+                .Cells(lastRowTarget, "AN").Value = cell.Offset(0, 9).Value  ' Столбец J -> AN
+                .Cells(lastRowTarget, "AB").Value = cell.Offset(0, 1).Value  ' Столбец B -> AB
+            End With
+            lastRowTarget = lastRowTarget + 1
+        End If
+    Next cell
+    
+    ' Закрытие целевого файла с сохранением
+    wbTarget.Close SaveChanges:=True
+    
+    MsgBox "Данные успешно перенесены.", vbInformation
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
 Sub ДЗ_часть_3()
     Dim PivotTable As PivotTable
     Dim ws As Worksheet

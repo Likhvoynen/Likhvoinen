@@ -1,3 +1,12 @@
+' Определение последней строки в столбце B
+lastRowSource = wsSource.Cells(wsSource.Rows.Count, "B").End(xlUp).Row
+MsgBox "Последняя строка в столбце B: " & lastRowSource
+MsgBox "Диапазон данных в B: " & wsSource.Range("B2:B" & lastRowSource).Address
+
+
+
+
+
 Sub TransferData()
     Dim sourceSheet As Worksheet, targetSheet As Worksheet
     Dim lastRowTarget As Long, lastRowSource As Long

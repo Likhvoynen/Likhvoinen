@@ -30,6 +30,118 @@ Sub TransferData()
     End If
 
     ' Установка второго открытого файла как целевого (не ThisWorkbook)
+    Dim foundTarget As Boolean
+    foundTarget = False
+    
+    For Each wbTarget In Workbooks
+        If wbTarget.Name <> wbSource.Name Then
+            On Error Resume Next
+            Set wsTarget = wbTarget.Sheets("план на месяц")
+            On Error GoTo 0
+            If Not wsTarget Is Nothing Then
+                foundTarget = True
+                Exit For
+            End If
+        End If
+    Next wbTarget
+    
+    If Not foundTarget Then
+        MsgBox "Лист 'план на месяц' не найден в целевом файле.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Нахождение последней заполненной строки в столбце AV на целевом листе
+    lastRowTarget = wsTarget.Cells(wsTarget.Rows.Count, "AV").End(xlUp).Row + 1
+
+    ' Очистка и форматирование столбца B
+    With wsSource
+        ' Принудительное преобразование столбца B в формат даты
+        .Range("B2:B" & .Rows.Count).TextToColumns Destination:=.Range("B2"), DataType:=xlDelimited, _
+            TextQualifier:=xlDoubleQuote, ConsecutiveDelimiter:=False, _
+            Tab:=False, Semicolon:=False, Comma:=False, Space:=False, Other:=False, FieldInfo:=Array(1, 4)
+    End With
+
+    ' Перебор каждой ячейки в столбце B, начиная с B2 и до конца столбца
+    For Each cell In wsSource.Range("B2:B" & wsSource.Rows.Count)
+        If Not IsEmpty(cell.Value) Then
+            ' Проверка на корректную дату
+            If IsDate(cell.Value) Then
+                dateString = Format(cell.Value, "dd.mm.yyyy") ' Форматирование даты для сравнения
+                Debug.Print "Проверяем ячейку: " & cell.Address & " Значение: " & dateString
+
+                ' Сравнение с введенной датой
+                If dateString = Format(sourceDate, "dd.mm.yyyy") Then
+                    With wsTarget
+                        .Cells(lastRowTarget, "C").Value = cell.Offset(0, 19).Value ' Столбец U -> C
+                        .Cells(lastRowTarget, "D").Value = cell.Offset(0, 20).Value ' Столбец V -> D
+                        .Cells(lastRowTarget, "H").Value = cell.Offset(0, 21).Value ' Столбец W -> H
+                        .Cells(lastRowTarget, "M").Value = cell.Offset(0, 23).Value ' Столбец Y -> M
+                        .Cells(lastRowTarget, "O").Value = cell.Offset(0, 25).Value ' Столбец AA -> O
+                        .Cells(lastRowTarget, "R").Value = cell.Offset(0, 3).Value  ' Столбец D -> R
+                        .Cells(lastRowTarget, "S").Value = cell.Offset(0, 8).Value  ' Столбец I -> S
+                        .Cells(lastRowTarget, "T").Value = cell.Offset(0, 6).Value  ' Столбец G -> T
+                        .Cells(lastRowTarget, "U").Value = cell.Offset(0, 7).Value  ' Столбец H -> U
+                        .Cells(lastRowTarget, "V").Value = cell.Offset(0, 13).Value ' Столбец N -> V
+                        .Cells(lastRowTarget, "W").Value = cell.Offset(0, 16).Value ' Столбец Q -> W
+                        .Cells(lastRowTarget, "AE").Value = cell.Offset(0, 19).Value ' Столбец T -> AE
+                        .Cells(lastRowTarget, "AI").Value = cell.Offset(0, 23).Value ' Столбец X -> AI
+                        .Cells(lastRowTarget, "AK").Value = cell.Offset(0, 14).Value ' Столбец O -> AK
+                        .Cells(lastRowTarget, "AN").Value = cell.Offset(0, 9).Value  ' Столбец J -> AN
+                        .Cells(lastRowTarget, "AB").Value = cell.Offset(0, 1).Value  ' Столбец B -> AB
+                    End With
+                    lastRowTarget = lastRowTarget + 1
+                    rowsCopied = rowsCopied + 1
+                    Debug.Print "Данные скопированы в строку: " & lastRowTarget
+                End If
+            Else
+                Debug.Print "Ячейка не является датой: " & cell.Address
+            End If
+        End If
+    Next cell
+
+    ' Сообщение об успехе
+    MsgBox "Копирование завершено. Количество перенесенных строк: " & rowsCopied, vbInformation
+End Sub
+
+
+
+
+
+
+
+
+Sub TransferData()
+    Dim lastRowTarget As Long
+    Dim sourceDate As Variant, cell As Range
+    Dim wbTarget As Workbook
+    Dim wbSource As Workbook
+    Dim wsTarget As Worksheet
+    Dim wsSource As Worksheet
+    Dim rowsCopied As Long
+    Dim dateString As String
+    rowsCopied = 0
+
+    ' Проверка, что открыто как минимум два файла (исходный и целевой)
+    If Workbooks.Count < 2 Then
+        MsgBox "Необходимо открыть исходный и целевой файлы.", vbExclamation
+        Exit Sub
+    End If
+
+    ' Установка активного файла как исходного
+    Set wbSource = ThisWorkbook
+    Set wsSource = wbSource.ActiveSheet
+    
+    ' Запрос даты у пользователя
+    sourceDate = Application.InputBox("Введите дату для фильтрации (ДД.ММ.ГГГГ):", Type:=2)
+    If sourceDate = False Then Exit Sub ' Пользователь нажал Отмена
+
+    ' Проверка на правильный формат даты
+    If Not IsDate(sourceDate) Then
+        MsgBox "Неправильный формат даты. Пожалуйста, введите корректную дату."
+        Exit Sub
+    End If
+
+    ' Установка второго открытого файла как целевого (не ThisWorkbook)
     For Each wbTarget In Workbooks
         If wbTarget.Name <> wbSource.Name Then
             Set wsTarget = wbTarget.Sheets("план на месяц")

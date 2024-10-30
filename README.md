@@ -1,3 +1,238 @@
+' Часть 3: Макрос для создания листа "Ю.В."
+
+Sub ДЗ_часть_2()
+
+Dim NewSheet As Worksheet
+On Error Resume Next ' Игнорируем ошибку, если лист уже существует
+Set NewSheet = ActiveWorkbook.Sheets("Ю.В.")
+On Error GoTo 0
+
+If NewSheet Is Nothing Then
+    Set NewSheet = ActiveWorkbook.Sheets.Add
+    NewSheet.Name = "Ю.В."
+End If
+
+' Переместите лист "Ю.В." после листа "Свод"
+NewSheet.Move After:=Worksheets("Свод")
+
+' Окрашиваем весь лист "Ю.В." в желтый цвет
+NewSheet.Tab.Color = RGB(255, 255, 204) ' Светло-желтый цвет
+    
+    ' Копируем сводную таблицу с листа "Свод" на лист "Ю.В." как значения и приводим к общему формату
+    With Worksheets("Свод").usedRange
+        .Copy
+        NewSheet.Cells(1, 1).PasteSpecial Paste:=xlPasteValues
+        NewSheet.Cells(1, 1).PasteSpecial Paste:=xlPasteFormats
+    End With
+    
+With Worksheets("Ю.В.")
+    .Rows(1).Delete
+End With
+
+With Worksheets("Ю.В.")
+    .Range("A1:C1").Value = .Range("A2:C2").Value ' Перенос данных из A2:C2 в A1:C1
+    .Rows(2).Delete ' Удаление второй строки
+End With
+
+With Worksheets("Ю.В.").Rows(1)
+    .WrapText = True ' Перенос текста
+    .HorizontalAlignment = xlCenter ' Горизонтальное выравнивание по центру
+    .VerticalAlignment = xlCenter ' Вертикальное выравнивание по центру
+    .Font.Color = RGB(0, 0, 0) ' Черный цвет шрифта
+End With
+
+With Worksheets("Ю.В.").usedRange
+    .Borders(xlEdgeLeft).LineStyle = xlContinuous
+    .Borders(xlEdgeTop).LineStyle = xlContinuous
+    .Borders(xlEdgeBottom).LineStyle = xlContinuous
+    .Borders(xlEdgeRight).LineStyle = xlContinuous
+    .Borders(xlInsideVertical).LineStyle = xlContinuous
+    .Borders(xlInsideHorizontal).LineStyle = xlContinuous
+End With
+
+' Отключаем предупреждения
+    Application.DisplayAlerts = False
+    
+' Определяем последнюю строку в выбранном диапазоне
+    lastRow = Selection.Rows.Count
+    
+   ' Устанавливаем выравнивание для всех ячеек в столбцах A и B, кроме первой строки
+    With Selection.Columns(1).Offset(1, 0).Resize(lastRow - 1) ' Столбец A, начиная со 2-й строки
+        .HorizontalAlignment = xlHAlignLeft ' Выравнивание по горизонтали
+        .VerticalAlignment = xlVAlignTop ' Выравнивание по вертикали
+    End With
+    
+    With Selection.Columns(2).Offset(1, 0).Resize(lastRow - 1) ' Столбец B, начиная со 2-й строки
+        .HorizontalAlignment = xlHAlignLeft ' Выравнивание по горизонтали
+        .VerticalAlignment = xlVAlignTop ' Выравнивание по вертикали
+    End With
+
+   ' Объединяем ячейки в столбце A
+    For i = lastRow To 2 Step -1
+        If Selection.Cells(i, 1).Value <> "" And Selection.Cells(i, 1).Value = Selection.Cells(i - 1, 1).Value Then
+            Range(Selection.Cells(i - 1, 1), Selection.Cells(i, 1)).Merge
+        End If
+    Next i
+
+    ' Объединяем ячейки в столбце B
+    For i = lastRow To 2 Step -1
+        If Selection.Cells(i, 2).Value <> "" And Selection.Cells(i, 2).Value = Selection.Cells(i - 1, 2).Value Then
+            Range(Selection.Cells(i - 1, 2), Selection.Cells(i, 2)).Merge
+        End If
+    Next i
+       
+    ' Включаем предупреждения обратно
+    Application.DisplayAlerts = True
+    
+
+ ' Вставьте новый столбец после столбца H (столбец 8)
+    Columns("I").Insert Shift:=xlToRight, CopyOrigin:=xlFormatFromLeftOrAbove
+    
+   ' Устанавливаем заголовок в ячейке I1 с текущей датой
+    Cells(1, 9).Value = "ИТОГО ПДЗ+ДЗ на " & Format(Date, "dd.mm.yyyy") ' Измените текст на нужный заголовок
+    
+    ' Найдите последнюю заполненную строку в столбцах D:H
+    lastRow = Cells(Rows.Count, "D").End(xlUp).Row
+    Dim lastRowH As Long
+    lastRowH = Cells(Rows.Count, "H").End(xlUp).Row
+    lastRow = Application.WorksheetFunction.Max(lastRow, lastRowH)
+    
+   ' Вставьте формулу суммирования в столбец I, начиная со второй строки
+    Dim r As Long
+    For r = 2 To lastRow
+        ' Проверяем, содержит ли строка слово "Общий итог"
+        If InStr(1, Cells(r, "A").Value, "Общий итог", vbTextCompare) = 0 Then
+            If Application.CountA(Range("D" & r & ":H" & r)) > 0 Then
+            Cells(r, "I").formula = "=SUM(D" & r & ":H" & r & ")"
+            End If
+        End If
+    Next r
+    
+    
+    ' Теперь добавим формулу суммирования для строки с "Общий итог"
+    Dim sumRows As String
+    sumRows = ""
+
+    For r = 2 To lastRow
+        If InStr(1, Cells(r, "A").Value, "итог", vbTextCompare) > 0 Then
+            If InStr(1, Cells(r, "A").Value, "общий итог", vbTextCompare) = 0 And _
+               InStr(1, Cells(r, "A").Value, "факторинг итог", vbTextCompare) = 0 And _
+               InStr(1, Cells(r, "A").Value, "суды и прочие итог", vbTextCompare) = 0 Then
+                If sumRows = "" Then
+                    sumRows = "I" & r
+                Else
+                    sumRows = sumRows & ",I" & r
+                End If
+            End If
+        End If
+    Next r
+    
+    ' Вставьте формулу суммирования в строку, где есть "Общий итог"
+    For r = 2 To lastRow
+        If InStr(1, Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+            If sumRows <> "" Then
+                Cells(r, "I").formula = "=SUM(" & sumRows & ")"
+            End If
+            Exit For ' Выход из цикла после нахождения первой строки с "Общий итог"
+        End If
+    Next r
+
+    
+    ' Установите диапазон данных в столбце I (от I1 до последней заполненной строки)
+    Dim dataRange As Range
+    Set dataRange = Range("I1:I" & lastRow)
+    
+ ' Установите только внешние границы для диапазона данных
+    With dataRange.Borders(xlEdgeTop)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .ColorIndex = 0 ' Черный цвет
+    End With
+    
+    With dataRange.Borders(xlEdgeBottom)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .ColorIndex = 0 ' Черный цвет
+    End With
+    
+    With dataRange.Borders(xlEdgeLeft)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .ColorIndex = 0 ' Черный цвет
+    End With
+    
+    With dataRange.Borders(xlEdgeRight)
+        .LineStyle = xlContinuous
+        .Weight = xlThick
+        .ColorIndex = 0 ' Черный цвет
+    End With
+    
+    
+ ' Форматируем таблицу
+    
+    Sheets("Ю.В.").Select
+    With ActiveWorkbook.Sheets("Ю.В.").Tab
+        .ThemeColor = xlThemeColorAccent4
+        .TintAndShade = 0.599993896298105
+    End With
+   Sheets("СВОД").Select
+    With ActiveWorkbook.Sheets("СВОД").Tab
+        .ThemeColor = xlThemeColorAccent6
+        .TintAndShade = 0.599993896298105
+    End With
+    Sheets("Ю.В.").Select
+    Rows("1:1").EntireRow.AutoFit
+    Columns("A:C").Select
+    Range("C1").Activate
+    Columns("A:C").EntireColumn.AutoFit
+    Columns("D:AK").Select
+    Selection.ColumnWidth = 16
+    Range("E9").Select
+    Rows("1:1").EntireRow.AutoFit
+    ActiveWindow.Zoom = 90
+    ActiveWindow.Zoom = 80
+    ActiveWindow.DisplayGridlines = False
+    Range("G17").Select
+    ActiveWindow.SmallScroll Down:=60
+    Range("I94").Select
+    ActiveCell.FormulaR1C1 = _
+        "=SUM(R[-84]C,R[-54]C,R[-34]C,R[-25]C,R[-23]C,R[-11]C)"
+    Range("F79").Select
+    ActiveWindow.SmallScroll Down:=-69
+
+    ' Очищаем буфер обмена и включаем обновление экрана
+    Application.CutCopyMode = False
+    Application.ScreenUpdating = True
+    Application.Calculation = xlCalculationAutomatic
+
+End Sub
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 ' Копируем данные из исходного листа в целевой
 With sourceSheet
     Dim columnsToCopy As Variant

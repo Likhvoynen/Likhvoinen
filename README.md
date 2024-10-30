@@ -1,3 +1,40 @@
+Dim sumAddress As String
+sumAddress = ""
+
+' Ищем строки для суммирования
+For r = 2 To lastRow
+    Dim cellValue As String
+    cellValue = LCase(Cells(r, "A").Value) ' Приводим к нижнему регистру для сравнения
+
+    ' Проверяем, что строка содержит "итог", но не "факторинг итог" и не "суды и прочие итог"
+    If InStr(cellValue, "итог") > 0 And InStr(cellValue, "факторинг итог") = 0 And InStr(cellValue, "суды и прочие итог") = 0 Then
+        ' Добавляем адрес ячейки I текущей строки в список адресов
+        If sumAddress = "" Then
+            sumAddress = "I" & r
+        Else
+            sumAddress = sumAddress & ",I" & r
+        End If
+    End If
+Next r
+
+' Ищем строку с "Общий итог" и вставляем формулу суммы
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+        If sumAddress <> "" Then
+            ' Вставляем формулу суммы в ячейку общего итога
+            Cells(r, "I").Formula = "=SUM(" & sumAddress & ")"
+        End If
+        Exit For ' Прекращаем цикл после первой строки с "Общий итог"
+    End If
+Next r
+
+
+
+
+
+
+
+
 Dim sumRange As Range
 Dim sumCell As Range
 Set sumRange = Nothing

@@ -1,3 +1,39 @@
+Dim sumRange As Range
+Dim sumCell As Range
+Set sumRange = Nothing
+
+' Ищем строки для суммирования
+For r = 2 To lastRow
+    Dim cellValue As String
+    cellValue = LCase(Cells(r, "A").Value) ' Приводим к нижнему регистру для сравнения
+
+    ' Проверяем, что строка содержит "итог", но не "факторинг итог" и не "суды и прочие итог"
+    If InStr(cellValue, "итог") > 0 And InStr(cellValue, "факторинг итог") = 0 And InStr(cellValue, "суды и прочие итог") = 0 Then
+        ' Добавляем ячейку I из текущей строки в диапазон для суммирования
+        If sumRange Is Nothing Then
+            Set sumRange = Cells(r, "I")
+        Else
+            Set sumRange = Union(sumRange, Cells(r, "I"))
+        End If
+    End If
+Next r
+
+' Ищем строку с "Общий итог" и вставляем сумму
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+        If Not sumRange Is Nothing Then
+            Cells(r, "I").Formula = "=SUM(" & sumRange.Address & ")"
+        End If
+        Exit For ' Останавливаем цикл после нахождения первой строки с "Общий итог"
+    End If
+Next r
+
+
+
+
+
+
+
 Dim sumRows As String
 sumRows = ""
 

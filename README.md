@@ -1,3 +1,38 @@
+' Теперь добавим формулу суммирования для строки с "Общий итог"
+Dim sumRows As String
+sumRows = ""
+
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "итог", vbTextCompare) > 0 Then
+        If InStr(1, Cells(r, "A").Value, "факторинг итог", vbTextCompare) = 0 And _
+           InStr(1, Cells(r, "A").Value, "суды и прочие итог", vbTextCompare) = 0 Then
+            If sumRows = "" Then
+                sumRows = "I" & r
+            Else
+                sumRows = sumRows & ",I" & r
+            End If
+        End If
+    End If
+Next r
+
+' Вставляем формулу суммирования для строки с "Общий итог"
+For r = 2 To lastRow
+    If InStr(1, Cells(r, "A").Value, "Общий итог", vbTextCompare) > 0 Then
+        If sumRows <> "" Then
+            Cells(r, "I").Formula = "=SUM(" & sumRows & ")"
+        End If
+        Exit For ' Останавливаем поиск после нахождения первой строки с "Общий итог"
+    End If
+Next r
+
+
+
+
+
+
+
+
+
 ' Часть 3: Макрос для создания листа "Ю.В."
 
 Sub ДЗ_часть_2()

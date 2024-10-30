@@ -1,121 +1,25 @@
-Sub ДДС()
-    Dim sourceSheet As Worksheet
-    Dim targetWorkbook As Workbook
-    Dim targetSheet As Worksheet
-    Dim lastRow As Long
-    Dim targetRow As Long
-    Dim i As Long
-    Dim addedRowsCount As Long ' Переменная для подсчета добавленных строк
-
-    ' Установите исходный лист (активный лист)
-    Set sourceSheet = ActiveSheet
-
-    ' Найдите любой открытый документ с листом "план на месяц"
-    On Error Resume Next
-    For Each targetWorkbook In Workbooks
-        Set targetSheet = targetWorkbook.Sheets("план на месяц")
-        If Not targetSheet Is Nothing Then Exit For
-    Next targetWorkbook
-    On Error GoTo 0
-
-    If targetSheet Is Nothing Then
-        MsgBox "Не найден открытый файл с листом 'план на месяц'. Пожалуйста, откройте нужный файл и попробуйте снова."
-        Exit Sub
-    End If
-
-    ' Найдите последнюю заполненную строку в столбце AB целевого листа
-    lastRow = targetSheet.Cells(targetSheet.Rows.Count, "AB").End(xlUp).Row
-    targetRow = lastRow + 1 ' Следующая строка для вставки
-
-    ' Копируем данные из исходного листа в целевой
-    With sourceSheet
-        Dim columnsToCopy As Variant
-        Dim targetColumns As Variant
-        Dim j As Long
-        
-        ' Определяем, какие столбцы копировать
-        columnsToCopy = Array("U", "V", "W", "Y", "AA", "D", "I", "G", "H", "N", "Q", "T", "X", "O", "J", "B")
-        targetColumns = Array("C", "E", "H", "M", "O", "R", "S", "T", "U", "V", "W", "AE", "AI", "AK", "AN", "AB")
-        
-        For j = LBound(columnsToCopy) To UBound(columnsToCopy)
-            targetSheet.Cells(targetRow, targetColumns(j)).Resize(.Cells(.Rows.Count, columnsToCopy(j)).End(xlUp).Row, 1).Value = .Range(columnsToCopy(j) & "1:" & columnsToCopy(j) & .Cells(.Rows.Count, columnsToCopy(j)).End(xlUp).Row).Value
-        Next j
-    End With
-
-    ' Проверка значений в столбцах S и C только для добавленных строк
-    Dim lastAddedRow As Long
-    lastAddedRow = targetRow + sourceSheet.Cells(sourceSheet.Rows.Count, "U").End(xlUp).Row - 1 ' Последняя добавленная строка
-
-    For i = targetRow To lastAddedRow
+' Копируем данные из исходного листа в целевой
+With sourceSheet
+    Dim columnsToCopy As Variant
+    Dim targetColumns As Variant
+    Dim j As Long
     
-    ' Условие для изменения значения в столбце C
-    If sourceSheet.Cells(i - targetRow + 1, "D").Value = "ВТБ ФАКТОРИНГ ООО" And sourceSheet.Cells(i - targetRow + 1, "U").Value = 1254 Then
-        targetSheet.Cells(i, "C").Value = 2614
-    End If
+    ' Определяем, какие столбцы копировать
+    columnsToCopy = Array("U", "V", "W", "Y", "AA", "D", "I", "G", "H", "N", "Q", "T", "X", "O", "J", "B")
+    targetColumns = Array("C", "E", "H", "M", "O", "R", "S", "T", "U", "V", "W", "AE", "AI", "AK", "AN", "AB")
     
-    ' Условие для замены значений в столбце C
-    Select Case targetSheet.Cells(i, "C").Value
-        Case 6131
-            targetSheet.Cells(i, "C").Value = 6111
-        Case 6132
-            targetSheet.Cells(i, "C").Value = 6535
-        Case 6133
-            targetSheet.Cells(i, "C").Value = 6211
-       Case 6126
-            targetSheet.Cells(i, "C").Value = 6111
-    End Select
+    For j = LBound(columnsToCopy) To UBound(columnsToCopy)
+        ' Копируем диапазон значений
+        .Range(columnsToCopy(j) & "1:" & columnsToCopy(j) & .Cells(.Rows.Count, columnsToCopy(j)).End(xlUp).Row).Copy
+        ' Вставляем значения в целевой лист без изменения формата
+        targetSheet.Cells(targetRow, targetColumns(j)).PasteSpecial Paste:=xlPasteValues
+    Next j
+End With
 
-    ' Новое условие для проверки значений в столбцах U, Y и E
-    If (sourceSheet.Cells(i - targetRow + 1, "U").Value = 2221 Or _
-        sourceSheet.Cells(i - targetRow + 1, "U").Value = 1341 Or _
-        sourceSheet.Cells(i - targetRow + 1, "U").Value = 1432 Or _
-        sourceSheet.Cells(i - targetRow + 1, "U").Value = 6935) And _
-        (sourceSheet.Cells(i - targetRow + 1, "Y").Value = "000" Or _
-        sourceSheet.Cells(i - targetRow + 1, "Y").Value = "220") Then
-        
-        If InStr(1, sourceSheet.Cells(i - targetRow + 1, "E").Value, "РМЛ", vbTextCompare) > 0 Then
-            targetSheet.Cells(i, "C").Value = 6271
-            targetSheet.Cells(i, "H").Value = 4100
-            targetSheet.Cells(i, "M").Value = 220
-        Else
-            targetSheet.Cells(i, "C").Value = 2211
-            targetSheet.Cells(i, "H").Value = "0000"
-            targetSheet.Cells(i, "M").Value = 220
-        End If
-    End If
+' Очищаем буфер обмена после вставки
+Application.CutCopyMode = False
 
-' Новое условие для проверки, содержит ли столбец D слово "лизинг"
-    If InStr(1, sourceSheet.Cells(i - targetRow + 1, "D").Value, "лизинг", vbTextCompare) > 0 Then
-        targetSheet.Cells(i, "C").Value = 6117
-        targetSheet.Cells(i, "E").Value = "000" ' Вставляем строку "000"
-    End If
-    
-    ' Условия для обработки значений в столбце S
-    If targetSheet.Cells(i, "S").Value < 0 And targetSheet.Cells(i, "C").Value = 2614 Then
-        targetSheet.Cells(i, "B").Value = "Обязательные"
-        targetSheet.Cells(i, "J").Value = "2. ПЛАТЕЖИ"
-        targetSheet.Cells(i, "K").Value = "1. ПОГАШЕНИЕ КРЕДИТОВ"
-        targetSheet.Cells(i, "L").Value = "02. Кредиты текущие"
-    ElseIf targetSheet.Cells(i, "S").Value < 0 Then
-        If targetSheet.Cells(i, "C").Value = 2611 Then
-            targetSheet.Cells(i, "B").Value = "Обязательные"
-            targetSheet.Cells(i, "J").Value = "2. ПЛАТЕЖИ"
-            targetSheet.Cells(i, "K").Value = "1. ПОГАШЕНИЕ КРЕДИТОВ"
-            targetSheet.Cells(i, "L").Value = "01. Кредиты инвестиционные"
-        ElseIf targetSheet.Cells(i, "C").Value = 2612 Then
-            targetSheet.Cells(i, "B").Value = "Обязательные"
-            targetSheet.Cells(i, "J").Value = "2. ПЛАТЕЖИ"
-            targetSheet.Cells(i, "K").Value = "1. ПОГАШЕНИЕ КРЕДИТОВ"
-            targetSheet.Cells(i, "L").Value = "02. Кредиты текущие"
-        End If
-    End If
 
-    addedRowsCount = addedRowsCount + 1 ' Увеличиваем счетчик добавленных строк
-Next i
-
-' Выводим сообщение с количеством добавленных строк
-MsgBox "Данные успешно скопированы в целевой файл и обработаны! Было добавлено " & addedRowsCount & " строк(и)."
-End Sub
 
 
 

@@ -70,7 +70,8 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                     If response = vbYes Then
                         wsTarget.Rows(i).Delete
                     ElseIf response = vbNo Then
-                        MsgBox "Удаление отменено. Макрос остановлен.", vbInformation, "Операция отменена"
+                        MsgBox "Удаление отменено. Признак '1' будет восстановлен.", vbInformation, "Операция отменена"
+                        cell.Value = 1 ' Восстанавливаем признак "1" в ячейке
                         GoTo CleanUp ' Завершаем выполнение макроса
                     End If
                 End If

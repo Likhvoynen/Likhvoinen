@@ -1,14 +1,14 @@
 Private Sub Worksheet_Change(ByVal Target As Range)
     Dim wsTarget As Worksheet
     Dim lastRowTarget As Long
-    Dim lastCol As Long
-    Dim targetLastCol As Long
     Dim cell As Range
-    Dim response As VbMsgBoxResult
-    Dim matchFound As Boolean
     Dim sourceRowRange As Range
     Dim targetRowRange As Range
+    Dim matchFound As Boolean
+    Dim response As VbMsgBoxResult
     Dim i As Long
+    Dim lastCol As Long
+    Dim targetLastCol As Long
 
     ' Установите ссылку на лист назначения
     Set wsTarget = ThisWorkbook.Sheets("данные по оплате")
@@ -19,45 +19,34 @@ Private Sub Worksheet_Change(ByVal Target As Range)
         On Error GoTo CleanUp ' Устанавливаем обработчик ошибок
 
         For Each cell In Target
-            If cell.Value = 1 Then
-                ' Найдите первую пустую строку на листе "данные по оплате"
-                lastRowTarget = wsTarget.Cells(wsTarget.Rows.Count, "D").End(xlUp).Row + 1
-                
-                ' Определите последний столбец с данными в текущей строке
+            If cell.Value = "" Then ' Если значение ячейки в столбце A удалено
+                ' Запоминаем данные строки с текущего листа, начиная со столбца B
                 lastCol = Me.Cells(cell.Row, Me.Columns.Count).End(xlToLeft).Column
-                
-                ' Копируйте данные начиная со столбца B до последнего столбца с данными
                 If lastCol >= 2 Then
                     Set sourceRowRange = Me.Range(Me.Cells(cell.Row, 2), Me.Cells(cell.Row, lastCol))
-                    Set targetRowRange = wsTarget.Cells(lastRowTarget, "D").Resize(1, lastCol - 1)
-                    
-                    ' Копируем данные и формат
-                    sourceRowRange.Copy
-                    targetRowRange.PasteSpecial Paste:=xlPasteValuesAndNumberFormats
-                    targetRowRange.PasteSpecial Paste:=xlPasteFormats
-                    Application.CutCopyMode = False
+                Else
+                    GoTo NextCell ' Пропустить, если нет данных для сравнения
                 End If
-            ElseIf cell.Value = "" Then ' Если значение ячейки удалено
-                ' Поиск строки для удаления
+
+                ' Поиск совпадающей строки на листе "данные по оплате"
                 matchFound = False
                 lastRowTarget = wsTarget.Cells(wsTarget.Rows.Count, "D").End(xlUp).Row
-                lastCol = Me.Cells(cell.Row, Me.Columns.Count).End(xlToLeft).Column
                 
                 For i = 1 To lastRowTarget
-                    ' Диапазон данных текущей строки на листе назначения
+                    ' Определяем диапазон текущей строки на листе "данные по оплате"
                     targetLastCol = wsTarget.Cells(i, wsTarget.Columns.Count).End(xlToLeft).Column
-                    If targetLastCol >= 4 Then
-                        Set targetRowRange = wsTarget.Range(wsTarget.Cells(i, 4), wsTarget.Cells(i, 3 + lastCol - 1))
-                        
+                    If targetLastCol >= 4 Then ' Убедиться, что есть данные для сравнения
+                        Set targetRowRange = wsTarget.Range(wsTarget.Cells(i, 4), wsTarget.Cells(i, 3 + sourceRowRange.Columns.Count))
+
                         ' Сравниваем данные строки
-                        If Application.WorksheetFunction.CountIfs(targetRowRange, Me.Range(Me.Cells(cell.Row, 2), Me.Cells(cell.Row, lastCol))) = targetRowRange.Columns.Count Then
+                        If CompareRanges(sourceRowRange, targetRowRange) Then
                             matchFound = True
                             Exit For
                         End If
                     End If
                 Next i
-                
-                ' Если совпадение найдено, запросите подтверждение на удаление
+
+                ' Если совпадение найдено, запросить подтверждение удаления
                 If matchFound Then
                     response = MsgBox("Вы действительно хотите удалить строку с данными: " & targetRowRange.Address & "?", vbYesNo + vbQuestion, "Подтверждение удаления")
                     
@@ -66,9 +55,33 @@ Private Sub Worksheet_Change(ByVal Target As Range)
                     End If
                 End If
             End If
+NextCell:
         Next cell
 
 CleanUp:
         Application.EnableEvents = True ' Включаем события обратно
     End If
 End Sub
+
+' Функция для сравнения двух диапазонов
+Private Function CompareRanges(rng1 As Range, rng2 As Range) As Boolean
+    Dim cell1 As Range, cell2 As Range
+    Dim isMatch As Boolean
+    Dim i As Long
+
+    ' Убедимся, что диапазоны одинаковой ширины
+    If rng1.Columns.Count <> rng2.Columns.Count Then
+        CompareRanges = False
+        Exit Function
+    End If
+
+    isMatch = True
+    For i = 1 To rng1.Columns.Count
+        If rng1.Cells(1, i).Value <> rng2.Cells(1, i).Value Then
+            isMatch = False
+            Exit For
+        End If
+    Next i
+
+    CompareRanges = isMatch
+End Function

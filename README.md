@@ -47,4 +47,3 @@ CleanUp:
         Application.EnableEvents = True ' Включаем события обратно
     End If
 End Sub
-
